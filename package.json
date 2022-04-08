@@ -5,13 +5,14 @@
   "keywords": [],
   "author": "Anton Groznykh <antongroznykh@gmail.com> (https://github.com/antgroz)",
   "license": "MIT",
-  "main": "./lib/meister.js",
+  "main": "./dist/index.js",
   "types": "./index.d.ts",
   "directories": {
     "lib": "lib",
     "test": "test"
   },
   "scripts": {
+    "build": "esbuild ./lib/meister.js --bundle --minify --platform=node --outfile=./dist/index.js --external:./node_modules/*",
     "cov": "c8 mocha",
     "format": "prettier --write .",
     "lint": "eslint --fix .",
@@ -23,7 +24,6 @@
   "devDependencies": {
     "chai": "^4.3.6",
     "esbuild": "^0.14.34",
-    "esbuild-register": "^3.3.2",
     "eslint": "^8.12.0",
     "eslint-config-prettier": "^8.5.0",
     "mocha": "^9.2.2",
