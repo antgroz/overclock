@@ -1,3 +1,5 @@
+"use strict";
+
 var is = require("../lib/is");
 require("chai").should();
 
