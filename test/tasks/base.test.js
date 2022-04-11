@@ -198,6 +198,7 @@ describe('base task', function () {
         var defaults = makeDefaults(5000, 10000, 500, 0);
         var task = new Base(options, defaults);
         task._run(spy);
+        spy.calledOnce;
         spy.withArgs(null, '5').calledOnce;
       });
 
@@ -210,6 +211,7 @@ describe('base task', function () {
         var defaults = makeDefaults(5000, 10000, 500, 0);
         var task = new Base(options, defaults);
         task._run(spy);
+        spy.calledOnce;
         spy.withArgs(error, null).calledOnce;
       });
     });
@@ -223,6 +225,7 @@ describe('base task', function () {
         var defaults = makeDefaults(5000, 10000, 500, 0);
         var task = new Base(options, defaults);
         task._run(spy);
+        spy.calledOnce;
         spy.withArgs(null, 500).calledOnce;
       });
 
@@ -235,6 +238,7 @@ describe('base task', function () {
         var defaults = makeDefaults(5000, 10000, 500, 0);
         var task = new Base(options, defaults);
         task._run(spy);
+        spy.calledOnce;
         spy.withArgs(error, null).calledOnce;
       });
     });
@@ -248,6 +252,7 @@ describe('base task', function () {
         var defaults = makeDefaults(5000, 10000, 500, 0, global.Promise);
         var task = new Base(options, defaults);
         task._run(spy);
+        spy.calledOnce;
         spy.withArgs(null, true).calledOnce;
       });
 
@@ -260,6 +265,7 @@ describe('base task', function () {
         var defaults = makeDefaults(5000, 10000, 500, 0, global.Promise);
         var task = new Base(options, defaults);
         task._run(spy);
+        spy.calledOnce;
         spy.withArgs(error, null).calledOnce;
       });
 
@@ -271,6 +277,7 @@ describe('base task', function () {
         var defaults = makeDefaults(5000, 10000, 500, 0);
         var task = new Base(options, defaults);
         task._run(spy);
+        spy.calledOnce;
         spy.withArgs(null, undefined).calledOnce;
       });
 
@@ -283,6 +290,7 @@ describe('base task', function () {
         var defaults = makeDefaults(5000, 10000, 500, 0);
         var task = new Base(options, defaults);
         task._run(spy);
+        spy.calledOnce;
         spy.withArgs(null, undefined).calledOnce;
       });
     });
@@ -296,6 +304,7 @@ describe('base task', function () {
         var defaults = makeDefaults(5000, 10000, 500, 0, Promise);
         var task = new Base(options, defaults);
         task._run(spy);
+        spy.calledOnce;
         spy.withArgs(null, true).calledOnce;
       });
 
@@ -308,6 +317,7 @@ describe('base task', function () {
         var defaults = makeDefaults(5000, 10000, 500, 0, Promise);
         var task = new Base(options, defaults);
         task._run(spy);
+        spy.calledOnce;
         spy.withArgs(error, null).calledOnce;
       });
 
@@ -319,6 +329,7 @@ describe('base task', function () {
         var defaults = makeDefaults(5000, 10000, 500, 0);
         var task = new Base(options, defaults);
         task._run(spy);
+        spy.calledOnce;
         spy.withArgs(null, undefined).calledOnce;
       });
 
@@ -331,6 +342,7 @@ describe('base task', function () {
         var defaults = makeDefaults(5000, 10000, 500, 0);
         var task = new Base(options, defaults);
         task._run(spy);
+        spy.calledOnce;
         spy.withArgs(null, undefined).calledOnce;
       });
     });
@@ -513,6 +525,86 @@ describe('base task', function () {
     });
   });
 
-  // TODO
-  describe('lifecycle', function () {});
+  describe('lifecycle', function () {
+    it('should complete with a sync function', function (done) {
+      var options = makeOptions('task', function () {
+        return '5';
+      });
+      var defaults = makeDefaults(5000, 10000, 500, 0);
+      var task = new Base(options, defaults);
+      task.on('tock', function () {
+        done();
+      });
+      task._tick();
+    });
+
+    it('should complete with async callback function', function (done) {
+      var options = makeOptions('task', function (callback) {
+        callback(null, new Error('foo'));
+      });
+      var defaults = makeDefaults(5000, 10000, 500, 0);
+      var task = new Base(options, defaults);
+      task.on('tock', function () {
+        done();
+      });
+      task._tick();
+    });
+
+    it('should complete with async promise native function', function (done) {
+      var options = makeOptions('task', function () {
+        return global.Promise.resolve(5);
+      });
+      var defaults = makeDefaults(5000, 10000, 500, 0, global.Promise);
+      var task = new Base(options, defaults);
+      task.on('tock', function () {
+        done();
+      });
+      task._tick();
+    });
+
+    it('should complete with async promise library function', function (done) {
+      var options = makeOptions('task', function () {
+        return Promise.resolve(5);
+      });
+      var defaults = makeDefaults(5000, 10000, 500, 0, Promise);
+      var task = new Base(options, defaults);
+      task.on('tock', function () {
+        done();
+      });
+      task._tick();
+    });
+
+    it('should emit data on execution', function (done) {
+      var options = makeOptions('task', function () {
+        return '5';
+      });
+      var defaults = makeDefaults(5000, 10000, 500, 0);
+      var task = new Base(options, defaults);
+      task.on('tock', function (data) {
+        data.task.should.eq(task);
+        data.tickAt.should.be.instanceof(Date);
+        data.tockAt.should.be.instanceof(Date);
+        expect(data.error).to.be.null;
+        data.result.should.eq('5');
+        done();
+      });
+      task._tick();
+    });
+
+    it('should manage running count correctly', function (done) {
+      var options = makeOptions('task', function () {
+        return '5';
+      });
+      var defaults = makeDefaults(5000, 10000, 500, 0);
+      var task = new Base(options, defaults);
+      task.on('tick', function () {
+        task.runningCount.should.eq(1);
+      });
+      task.on('tock', function () {
+        task.runningCount.should.eq(0);
+        done();
+      });
+      task._tick();
+    });
+  });
 });
