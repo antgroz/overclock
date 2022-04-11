@@ -5,28 +5,28 @@
   "keywords": [],
   "author": "Anton Groznykh <antongroznykh@gmail.com> (https://github.com/antgroz)",
   "license": "MIT",
-  "main": "./dist/index.js",
-  "types": "./index.d.ts",
+  "main": "taskmeister.js",
+  "types": "taskmeister.d.ts",
   "directories": {
     "lib": "lib",
     "test": "test"
   },
   "scripts": {
-    "build": "esbuild ./lib/meister.js --bundle --minify --platform=node --outfile=./dist/index.js --external:./node_modules/*",
     "cov": "c8 mocha",
     "format": "prettier --write .",
     "lint": "eslint --fix .",
     "test": "mocha"
   },
-  "optionalDependencies": {
-    "bluebird": "^3.7.2"
-  },
   "devDependencies": {
+    "@types/node": "^16",
+    "bluebird": "^3.7.2",
+    "c8": "^7.11.0",
     "chai": "^4.3.6",
-    "esbuild": "^0.14.34",
     "eslint": "^8.12.0",
     "eslint-config-prettier": "^8.5.0",
+    "eslint-plugin-jsdoc": "^39.0.0",
     "mocha": "^9.2.2",
-    "prettier": "^2.6.2"
+    "prettier": "^2.6.2",
+    "sinon": "^13.0.1"
   }
 }
