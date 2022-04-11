@@ -1,12 +1,12 @@
 {
-  "name": "taskmeister",
+  "name": "taskracer",
   "version": "1.0.0",
   "description": "",
   "keywords": [],
   "author": "Anton Groznykh <antongroznykh@gmail.com> (https://github.com/antgroz)",
   "license": "MIT",
-  "main": "taskmeister.js",
-  "types": "taskmeister.d.ts",
+  "main": "taskracer.js",
+  "types": "taskracer.d.ts",
   "directories": {
     "lib": "lib",
     "test": "test"

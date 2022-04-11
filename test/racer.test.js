@@ -1,97 +1,97 @@
 var EventEmitter = require('events');
-var Meister = require('../lib/meister');
+var Racer = require('../lib/racer');
 require('chai').should();
 
-describe('Meister', function () {
+describe('Racer', function () {
   describe('constructor', function () {
     it('should work without parameters', function () {
-      new Meister();
+      new Racer();
     });
 
     it('should be an instance of EventEmitter', function () {
-      var meister = new Meister();
-      meister.should.be.instanceof(EventEmitter);
+      var racer = new Racer();
+      racer.should.be.instanceof(EventEmitter);
     });
 
     it('should check that passed parameters are an object', function () {
       var error;
       try {
-        new Meister(null);
+        new Racer(null);
       } catch (e) {
         error = e;
       }
-      error.message.should.eq('Meister params must be an object');
-      new Meister({});
+      error.message.should.eq('Racer params must be an object');
+      new Racer({});
     });
 
     // TODO: fix this test after the logger check is fixed
     it('should check that logger is a function', function () {
       var error;
       try {
-        new Meister({ logger: 'foo' });
+        new Racer({ logger: 'foo' });
       } catch (e) {
         error = e;
       }
-      error.message.should.eq('Meister logger must be a function');
+      error.message.should.eq('Racer logger must be a function');
     });
 
     it('should check that start timeout is a valid duration', function () {
       var error;
       try {
-        new Meister({ startTimeoutMillis: -3 });
+        new Racer({ startTimeoutMillis: -3 });
       } catch (e) {
         error = e;
       }
-      error.message.should.eq('Meister start timeout must be a valid duration');
-      new Meister({ startTimeoutMillis: 30 });
+      error.message.should.eq('Racer start timeout must be a valid duration');
+      new Racer({ startTimeoutMillis: 30 });
     });
 
     it('should check that run interval is a valid duration', function () {
       var error;
       try {
-        new Meister({ runIntervalMillis: {} });
+        new Racer({ runIntervalMillis: {} });
       } catch (e) {
         error = e;
       }
-      error.message.should.eq('Meister run interval must be a valid duration');
-      new Meister({ runIntervalMillis: 0 });
+      error.message.should.eq('Racer run interval must be a valid duration');
+      new Racer({ runIntervalMillis: 0 });
     });
 
     it('should check that stop timeout is a valid duration', function () {
       var error;
       try {
-        new Meister({ stopTimeoutMillis: true });
+        new Racer({ stopTimeoutMillis: true });
       } catch (e) {
         error = e;
       }
-      error.message.should.eq('Meister stop timeout must be a valid duration');
-      new Meister({ stopTimeoutMillis: 200 });
+      error.message.should.eq('Racer stop timeout must be a valid duration');
+      new Racer({ stopTimeoutMillis: 200 });
     });
 
     it('should check that awaited is a boolean', function () {
       var error;
       try {
-        new Meister({ awaited: 'foo' });
+        new Racer({ awaited: 'foo' });
       } catch (e) {
         error = e;
       }
-      error.message.should.eq('Meister awaited must be a boolean');
-      new Meister({ awaited: false });
+      error.message.should.eq('Racer awaited must be a boolean');
+      new Racer({ awaited: false });
     });
 
     it('should check that callback is a function', function () {
       var error;
       try {
-        new Meister({ callback: null });
+        new Racer({ callback: null });
       } catch (e) {
         error = e;
       }
-      error.message.should.eq('Meister callback must be a function');
-      new Meister({ callback: function () {} });
+      error.message.should.eq('Racer callback must be a function');
+      new Racer({ callback: function () {} });
     });
 
     it('should freeze the defaults', function () {
-      new Meister()._defaults.should.be.frozen;
+      new Racer()._defaults.should.be.frozen;
     });
   });
 });

@@ -75,7 +75,7 @@ declare class Task<R = any> extends EventEmitter {
   stop(callback: (error: Error | null) => void): void;
 }
 
-export type MeisterOptions = {
+export type RacerOptions = {
   schedule?: Schedule;
   startTimeoutMillis?: number;
   runIntervalMillis?: number;
@@ -85,7 +85,7 @@ export type MeisterOptions = {
   tasks: Task[];
 };
 
-declare class Meister extends EventEmitter {
+declare class Racer extends EventEmitter {
   schedule: Schedule;
   startTimeoutMillis?: number;
   runIntervalMillis?: number;
@@ -95,7 +95,7 @@ declare class Meister extends EventEmitter {
   tasks: Record<string, Task>;
   pipes: Record<TaskEvent, TaskListener>;
 
-  constructor(options?: MeisterOptions);
+  constructor(options?: RacerOptions);
 
   addListener(event: TaskEvent, listener: TaskListener): this;
 
@@ -127,6 +127,6 @@ declare class Meister extends EventEmitter {
   stop(callback: (error: Error | null) => void, task?: string): void;
 }
 
-export function taskmeister(options?: MeisterOptions): Meister;
+export function taskracer(options?: RacerOptions): Racer;
 
-export default taskmeister;
+export default taskracer;

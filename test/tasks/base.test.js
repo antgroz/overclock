@@ -514,7 +514,5 @@ describe('base task', function () {
   });
 
   // TODO
-  describe('lifecycle', function() {
-
-  })
+  describe('lifecycle', function () {});
 });
