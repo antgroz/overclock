@@ -6,5 +6,5 @@
   "parserOptions": {
     "ecmaVersion": 5
   },
-  "extends": ["eslint:recommended", "prettier"]
+  "extends": ["eslint:recommended", "plugin:jsdoc/recommended", "prettier"]
 }
