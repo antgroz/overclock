@@ -1,1 +1,1 @@
-# taskmeister
+![taskmeister](./logo.png 'taskmeister')
