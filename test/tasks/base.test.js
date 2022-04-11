@@ -512,4 +512,9 @@ describe('base task', function () {
       });
     });
   });
+
+  // TODO
+  describe('lifecycle', function() {
+
+  })
 });
