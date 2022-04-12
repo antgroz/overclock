@@ -111,10 +111,18 @@ describe('base task', function () {
   });
 
   describe('_tick', function () {
+    var options = makeOptions('task', function () {});
+    var defaults = makeDefaults(5000, 10000, 500, 0);
+    var task = new Base(options, defaults);
+
+    afterEach(function () {
+      delete task._preTick;
+      delete task._postTick;
+      delete task._run;
+      task.runningCount = 0;
+    });
+
     it('should call pre-tick hook if provided', function () {
-      var options = makeOptions('task', function () {});
-      var defaults = makeDefaults(5000, 10000, 500, 0);
-      var task = new Base(options, defaults);
       var spy = sinon.spy();
       task._preTick = spy;
       task._tick();
@@ -122,9 +130,6 @@ describe('base task', function () {
     });
 
     it('should call post-tick hook if provided', function () {
-      var options = makeOptions('task', function () {});
-      var defaults = makeDefaults(5000, 10000, 500, 0);
-      var task = new Base(options, defaults);
       var spy = sinon.spy();
       task._postTick = spy;
       task._tick();
@@ -132,10 +137,7 @@ describe('base task', function () {
     });
 
     it('should emit a tick emit with execution data', function (done) {
-      var options = makeOptions('task', function () {});
-      var defaults = makeDefaults(5000, 10000, 500, 0);
-      var task = new Base(options, defaults);
-      task.on('tick', function (data) {
+      task.once('tick', function (data) {
         data.task.should.eq(task);
         done();
       });
@@ -143,11 +145,7 @@ describe('base task', function () {
     });
 
     it('should increment the running count', function (done) {
-      var options = makeOptions('task', function () {});
-      var defaults = makeDefaults(5000, 10000, 500, 0);
-      var task = new Base(options, defaults);
-      task.runningCount.should.eq(0);
-      task.on('tick', function () {
+      task.once('tick', function () {
         task.runningCount.should.eq(1);
         done();
       });
@@ -155,9 +153,6 @@ describe('base task', function () {
     });
 
     it('should call the run wrapper with a callback', function () {
-      var options = makeOptions('task', function () {});
-      var defaults = makeDefaults(5000, 10000, 500, 0);
-      var task = new Base(options, defaults);
       var spy = sinon.spy();
       task._run = spy;
       task._tick();
@@ -326,10 +321,17 @@ describe('base task', function () {
   });
 
   describe('_tock', function () {
+    var options = makeOptions('task', function () {});
+    var defaults = makeDefaults(5000, 10000, 500, 0);
+    var task = new Base(options, defaults);
+
+    afterEach(function () {
+      delete task._preTock;
+      delete task._postTock;
+      task.runningCount = 0;
+    });
+
     it('should call pre-tock hook if provided', function () {
-      var options = makeOptions('task', function () {});
-      var defaults = makeDefaults(5000, 10000, 500, 0);
-      var task = new Base(options, defaults);
       var spy = sinon.spy();
       task._preTock = spy;
       task._tock({});
@@ -337,9 +339,6 @@ describe('base task', function () {
     });
 
     it('should call post-tock hook if provided', function () {
-      var options = makeOptions('task', function () {});
-      var defaults = makeDefaults(5000, 10000, 500, 0);
-      var task = new Base(options, defaults);
       var spy = sinon.spy();
       task._postTock = spy;
       task._tock({});
@@ -347,11 +346,8 @@ describe('base task', function () {
     });
 
     it('should emit a tock emit with execution data', function (done) {
-      var options = makeOptions('task', function () {});
-      var defaults = makeDefaults(5000, 10000, 500, 0);
-      var task = new Base(options, defaults);
       var executionData = {};
-      task.on('tock', function (data) {
+      task.once('tock', function (data) {
         data.should.eq(executionData);
         done();
       });
@@ -359,11 +355,8 @@ describe('base task', function () {
     });
 
     it('should decrement the running count', function (done) {
-      var options = makeOptions('task', function () {});
-      var defaults = makeDefaults(5000, 10000, 500, 0);
-      var task = new Base(options, defaults);
       task.runningCount = 1;
-      task.on('tock', function () {
+      task.once('tock', function () {
         task.runningCount.should.eq(0);
         done();
       });
@@ -378,20 +371,22 @@ describe('base task', function () {
   });
 
   describe('start', function () {
+    var options = makeOptions('task', function () {});
+    var defaults = makeDefaults(5000, 10000, 500, 0);
+    var task = new Base(options, defaults);
+
+    afterEach(function () {
+      delete task._init;
+    });
+
     it('should call _init', function () {
       var spy = sinon.spy();
-      var options = makeOptions('task', function () {});
-      var defaults = makeDefaults(5000, 10000, 500, 0);
-      var task = new Base(options, defaults);
       task._init = spy;
       task.start();
       spy.calledOnce;
     });
 
     it('should return this', function () {
-      var options = makeOptions('task', function () {});
-      var defaults = makeDefaults(5000, 10000, 500, 0);
-      var task = new Base(options, defaults);
       task._init = function () {};
       task.start().should.eq(task);
     });
