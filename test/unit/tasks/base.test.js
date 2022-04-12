@@ -170,8 +170,8 @@ describe('base task', function () {
         var defaults = makeDefaults(5000, 10000, 500, 0);
         var task = new Base(options, defaults);
         task._run(spy);
-        spy.calledOnce;
-        spy.withArgs(null, '5').calledOnce;
+        spy.calledOnce.should.be.true;
+        spy.withArgs(null, '5').calledOnce.should.be.true;
       });
 
       it('should pass error to the callback', function () {
@@ -183,8 +183,8 @@ describe('base task', function () {
         var defaults = makeDefaults(5000, 10000, 500, 0);
         var task = new Base(options, defaults);
         task._run(spy);
-        spy.calledOnce;
-        spy.withArgs(error, null).calledOnce;
+        spy.calledOnce.should.be.true;
+        spy.withArgs(error, null).calledOnce.should.be.true;
       });
     });
 
@@ -197,8 +197,8 @@ describe('base task', function () {
         var defaults = makeDefaults(5000, 10000, 500, 0);
         var task = new Base(options, defaults);
         task._run(spy);
-        spy.calledOnce;
-        spy.withArgs(null, 500).calledOnce;
+        spy.calledOnce.should.be.true;
+        spy.withArgs(null, 500).calledOnce.should.be.true;
       });
 
       it('should pass error to the callback', function () {
@@ -210,51 +210,65 @@ describe('base task', function () {
         var defaults = makeDefaults(5000, 10000, 500, 0);
         var task = new Base(options, defaults);
         task._run(spy);
-        spy.calledOnce;
-        spy.withArgs(error, null).calledOnce;
+        spy.calledOnce.should.be.true;
+        spy.withArgs(error, null).calledOnce.should.be.true;
       });
     });
 
     describe('async promise native function', function () {
-      it('should pass result to the callback', function () {
-        var spy = sinon.spy();
+      it('should pass result to the callback', function (done) {
+        var spy = sinon.spy(function (error, result) {
+          expect(error).to.be.null;
+          result.should.be.true;
+          spy.calledOnce.should.be.true;
+          done();
+        });
         var options = makeOptions('task', function () {
           return global.Promise.resolve(true);
         });
         var defaults = makeDefaults(5000, 10000, 500, 0, global.Promise);
         var task = new Base(options, defaults);
         task._run(spy);
-        spy.calledOnce;
-        spy.withArgs(null, true).calledOnce;
       });
 
-      it('should pass error to the callback', function () {
-        var spy = sinon.spy();
+      it('should pass error to the callback', function (done) {
         var error = new Error('something bad');
+        var spy = sinon.spy(function (e, result) {
+          e.should.be.eq(error);
+          expect(result).to.be.null;
+          spy.calledOnce.should.be.true;
+          done();
+        });
         var options = makeOptions('task', function () {
           return global.Promise.reject(error);
         });
         var defaults = makeDefaults(5000, 10000, 500, 0, global.Promise);
         var task = new Base(options, defaults);
         task._run(spy);
-        spy.calledOnce;
-        spy.withArgs(error, null).calledOnce;
       });
 
-      it('should pass undefined result when misconfigured and resolves', function () {
-        var spy = sinon.spy();
+      it('should pass promise result when misconfigured and resolves', function (done) {
+        var spy = sinon.spy(function (error, result) {
+          expect(error).to.be.null;
+          result.should.be.instanceof(global.Promise);
+          spy.calledOnce.should.be.true;
+          done();
+        });
         var options = makeOptions('task', function () {
           return global.Promise.resolve(5);
         });
         var defaults = makeDefaults(5000, 10000, 500, 0);
         var task = new Base(options, defaults);
         task._run(spy);
-        spy.calledOnce;
-        spy.withArgs(null, undefined).calledOnce;
       });
 
-      it('should pass undefined result when misconfigured and rejects', function () {
-        var spy = sinon.spy();
+      it('should pass promise result when misconfigured and rejects', function (done) {
+        var spy = sinon.spy(function (error, result) {
+          expect(error).to.be.null;
+          result.should.be.instanceof(global.Promise);
+          spy.calledOnce.should.be.true;
+          done();
+        });
         var error = new Error('something bad');
         var options = makeOptions('task', function () {
           return global.Promise.reject(error);
@@ -262,51 +276,63 @@ describe('base task', function () {
         var defaults = makeDefaults(5000, 10000, 500, 0);
         var task = new Base(options, defaults);
         task._run(spy);
-        spy.calledOnce;
-        spy.withArgs(null, undefined).calledOnce;
       });
     });
 
     describe('async promise library function', function () {
-      it('should pass result to the callback', function () {
-        var spy = sinon.spy();
+      it('should pass result to the callback', function (done) {
+        var spy = sinon.spy(function (error, result) {
+          expect(error).to.be.null;
+          result.should.be.true;
+          spy.calledOnce.should.be.true;
+          done();
+        });
         var options = makeOptions('task', function () {
           return Promise.resolve(true);
         });
         var defaults = makeDefaults(5000, 10000, 500, 0, Promise);
         var task = new Base(options, defaults);
         task._run(spy);
-        spy.calledOnce;
-        spy.withArgs(null, true).calledOnce;
       });
 
-      it('should pass error to the callback', function () {
-        var spy = sinon.spy();
+      it('should pass error to the callback', function (done) {
         var error = new Error('something bad');
+        var spy = sinon.spy(function (e, result) {
+          e.should.eq(error);
+          expect(result).to.be.null;
+          spy.calledOnce.should.be.true;
+          done();
+        });
         var options = makeOptions('task', function () {
           return Promise.reject(error);
         });
         var defaults = makeDefaults(5000, 10000, 500, 0, Promise);
         var task = new Base(options, defaults);
         task._run(spy);
-        spy.calledOnce;
-        spy.withArgs(error, null).calledOnce;
       });
 
-      it('should pass undefined result when misconfigured and resolves', function () {
-        var spy = sinon.spy();
+      it('should pass promise result when misconfigured and resolves', function (done) {
+        var spy = sinon.spy(function (error, result) {
+          expect(error).to.be.null;
+          result.should.be.instanceof(Promise);
+          spy.calledOnce.should.be.true;
+          done();
+        });
         var options = makeOptions('task', function () {
           return Promise.resolve(5);
         });
         var defaults = makeDefaults(5000, 10000, 500, 0);
         var task = new Base(options, defaults);
         task._run(spy);
-        spy.calledOnce;
-        spy.withArgs(null, undefined).calledOnce;
       });
 
-      it('should pass undefined result when misconfigured and rejects', function () {
-        var spy = sinon.spy();
+      it('should pass undefined result when misconfigured and rejects', function (done) {
+        var spy = sinon.spy(function (error, result) {
+          expect(error).to.be.null;
+          result.should.be.instanceof(Promise);
+          spy.calledOnce.should.be.true;
+          done();
+        });
         var error = new Error('something bad');
         var options = makeOptions('task', function () {
           return Promise.reject(error);
@@ -314,8 +340,6 @@ describe('base task', function () {
         var defaults = makeDefaults(5000, 10000, 500, 0);
         var task = new Base(options, defaults);
         task._run(spy);
-        spy.calledOnce;
-        spy.withArgs(null, undefined).calledOnce;
       });
     });
   });
@@ -383,7 +407,7 @@ describe('base task', function () {
       var spy = sinon.spy();
       task._init = spy;
       task.start();
-      spy.calledOnce;
+      spy.calledOnce.should.be.true;
     });
 
     it('should return this', function () {
