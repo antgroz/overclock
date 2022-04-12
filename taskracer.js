@@ -5,11 +5,11 @@ var Racer = require('./lib/racer');
 /**
  * Initialize a new instance
  *
- * @param {object} params - Taskracer parameters
+ * @param {object} options - Racer options
  * @returns {Racer} - New instance
  */
-function taskracer(params) {
-  return new Racer(params);
+function taskracer(options) {
+  return new Racer(options);
 }
 
 module.exports = taskracer;
