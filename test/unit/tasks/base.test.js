@@ -1,38 +1,15 @@
 'use strict';
 
 var EventEmitter = require('events').EventEmitter;
-var Base = require('../../lib/tasks/base');
+var Base = require('../../../lib/tasks/base');
 var sinon = require('sinon');
 var Promise = require('bluebird');
+var helpers = require('../../helpers/task');
+var makeDefaults = helpers.makeDefaults;
+var makeOptions = helpers.makeOptions;
 var chai = require('chai');
 var expect = chai.expect;
 chai.should();
-
-var makeDefaults = function () {
-  var keys = [
-    'startTimeoutMillis',
-    'runIntervalMillis',
-    'stopTimeoutMillis',
-    'gracefulTimeoutMillis',
-    'Promise',
-  ];
-
-  var defaults = {};
-  for (var i = 0; i < keys.length; i++) {
-    var key = keys[i];
-    defaults[key] = arguments[i];
-  }
-
-  return defaults;
-};
-
-var makeOptions = function () {
-  var common = Array.prototype.slice.call(arguments, 2);
-  var options = makeDefaults.apply(null, common);
-  options.name = arguments[0];
-  options.executable = arguments[1];
-  return options;
-};
 
 describe('base task', function () {
   describe('constructor', function () {

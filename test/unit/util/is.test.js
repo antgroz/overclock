@@ -1,6 +1,6 @@
 'use strict';
 
-var is = require('../../lib/util/is');
+var is = require('../../../lib/util/is');
 require('chai').should();
 
 var fn = function () {};

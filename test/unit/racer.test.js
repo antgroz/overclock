@@ -1,5 +1,5 @@
 var EventEmitter = require('events');
-var Racer = require('../lib/racer');
+var Racer = require('../../lib/racer');
 require('chai').should();
 
 describe('Racer', function () {
