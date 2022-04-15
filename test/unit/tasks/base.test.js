@@ -16,47 +16,47 @@ describe('base task', function () {
     var fn = function () {};
 
     it('should check that options is an object', function () {
-      Base.should.throw('Task options must be an object');
+      Base.should.throw('Options must be an object');
     });
 
     it('should check that name is a string', function () {
-      Base.bind(null, {}).should.throw('Task name must be a string');
+      Base.bind(null, {}).should.throw('Name must be a string');
     });
 
     it('should check that executable is a function', function () {
       var options = makeOptions('task', null);
       var ctor = Base.bind(null, options);
-      ctor.should.throw('Task executable must be a function');
+      ctor.should.throw('Executable must be a function');
     });
 
     it('should check that start timeout is a non-negative number', function () {
       var options = makeOptions('task', fn, -8);
       var ctor = Base.bind(null, options);
-      ctor.should.throw('Task start timeout must be a non-negative number');
+      ctor.should.throw('Start timeout must be a non-negative number');
     });
 
     it('should check that run interval is a non-negative number', function () {
-      var options = makeOptions('task', fn, 3, null);
+      var options = makeOptions('task', fn, 3, 'foo');
       var ctor = Base.bind(null, options);
-      ctor.should.throw('Task run interval must be a non-negative number');
+      ctor.should.throw('Run interval must be a non-negative number');
     });
 
     it('should check that stop timeout is a non-negative number', function () {
       var options = makeOptions('task', fn, 3, 4, '');
       var ctor = Base.bind(null, options);
-      ctor.should.throw('Task stop timeout must be a non-negative number');
+      ctor.should.throw('Stop timeout must be a non-negative number');
     });
 
     it('should check that graceful timeout is a non-negative number', function () {
       var options = makeOptions('task', fn, 3, 4, 10, -9);
       var ctor = Base.bind(null, options);
-      ctor.should.throw('Task graceful timeout must be a non-negative number');
+      ctor.should.throw('Graceful timeout must be a non-negative number');
     });
 
     it('should check that Promise is a function is a non-negative number', function () {
       var options = makeOptions('task', fn, 3, 4, 10, 9, 'foo');
       var ctor = Base.bind(null, options);
-      ctor.should.throw('Task Promise must be a constructor function');
+      ctor.should.throw('Promise must be a constructor function');
     });
 
     it('should use defaults when options are not set', function () {
@@ -71,7 +71,7 @@ describe('base task', function () {
       task.Promise.should.eq(fn);
     });
 
-    it('should not defaults when options are set', function () {
+    it('should not use defaults when options are set', function () {
       var fn2 = function () {};
       var options = makeOptions('task', fn, 300, 200, 150, 2, fn);
       var defaults = makeDefaults(5000, 10000, 500, 0, fn2);
@@ -83,15 +83,23 @@ describe('base task', function () {
       task.gracefulTimeoutMillis.should.eq(2);
       task.Promise.should.eq(fn);
     });
-  });
 
-  describe('super', function () {
-    it('should be EventEmitter', function () {
+    it('should set up the lifecycle state correctly', function () {
+      var options = makeOptions('task', fn, 0, 0, 0);
+      var task = new Base(options, {});
+      task.isStarting.should.be.false;
+      task.isStarted.should.be.false;
+      task.runningCount.should.eq(0);
+      task.isStopping.should.be.false;
+      task.isStopped.should.be.true;
+    });
+
+    it('set up the EventEmitter super class', function() {
       var options = makeOptions('task', function () {});
       var defaults = makeDefaults(5000, 10000, 500, 0);
       var task = new Base(options, defaults);
       task.should.be.instanceof(EventEmitter);
-    });
+    })
   });
 
   describe('_init', function () {
