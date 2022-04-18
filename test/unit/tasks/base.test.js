@@ -1,7 +1,7 @@
 'use strict';
 
 var EventEmitter = require('events').EventEmitter;
-var Base = require('../../../lib/tasks/base');
+var Base = require('../../../lib/tasks/base-task');
 var sinon = require('sinon');
 var Promise = require('bluebird');
 var helpers = require('../../helpers/task');
@@ -13,7 +13,9 @@ chai.should();
 
 describe('base task', function () {
   describe('constructor', function () {
-    var fn = function () {};
+    var fn = function () {
+      return true;
+    };
 
     it('should check that options is an object', function () {
       Base.should.throw('Options must be an object');
@@ -94,12 +96,34 @@ describe('base task', function () {
       task.isStopped.should.be.true;
     });
 
-    it('set up the EventEmitter super class', function() {
+    it('set up the EventEmitter super class', function () {
       var options = makeOptions('task', function () {});
       var defaults = makeDefaults(5000, 10000, 500, 0);
       var task = new Base(options, defaults);
       task.should.be.instanceof(EventEmitter);
-    })
+    });
+  });
+
+  describe('start', function () {
+    var options = makeOptions('task', function () {});
+    var defaults = makeDefaults(5000, 10000, 500, 0);
+    var task = new Base(options, defaults);
+
+    afterEach(function () {
+      delete task._init;
+    });
+
+    it('should call _init', function () {
+      var spy = sinon.spy();
+      task._init = spy;
+      task.start();
+      spy.calledOnce.should.be.true;
+    });
+
+    it('should return this', function () {
+      task._init = function () {};
+      task.start().should.eq(task);
+    });
   });
 
   describe('_init', function () {
@@ -389,28 +413,6 @@ describe('base task', function () {
   describe('_destroy', function () {
     it('should throw if not implemented', function () {
       Base.prototype._destroy.should.throw('Method not implemented');
-    });
-  });
-
-  describe('start', function () {
-    var options = makeOptions('task', function () {});
-    var defaults = makeDefaults(5000, 10000, 500, 0);
-    var task = new Base(options, defaults);
-
-    afterEach(function () {
-      delete task._init;
-    });
-
-    it('should call _init', function () {
-      var spy = sinon.spy();
-      task._init = spy;
-      task.start();
-      spy.calledOnce.should.be.true;
-    });
-
-    it('should return this', function () {
-      task._init = function () {};
-      task.start().should.eq(task);
     });
   });
 

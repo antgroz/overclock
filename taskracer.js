@@ -1,6 +1,6 @@
 'use strict';
 
-var Racer = require('./lib/racer');
+var Racer = require('./lib/principe');
 
 /**
  * Initialize a new instance
