@@ -1,3 +1,15 @@
+export type BaseTaskOptions<R> = {
+  name: string;
+  executable: () => R | Promise<R>;
+  concurrencyLimit: number;
+  livenessThreshold: number;
+  factoryCapacity: number;
+  generationLimit: number;
+  startTimeoutMillis: number;
+  runTimeoutMillis: number;
+  stopTimeoutMillis: number;
+  gracefulTimeoutMillis: number;
+};
 import { EventEmitter } from 'node:events';
 
 export type Schedule = 'once' | 'periodic' | 'recurrent' | 'sequential';
