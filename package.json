@@ -12,7 +12,7 @@
     "test": "test"
   },
   "engines": {
-    "node": "^16"
+    "node": "^14 || ^16"
   },
   "scripts": {
     "cov": "c8 mocha",
@@ -23,7 +23,7 @@
   "devDependencies": {
     "@types/chai": "^4.3.1",
     "@types/mocha": "^9.1.0",
-    "@types/node": "^16",
+    "@types/node": "^14.18.13",
     "@types/sinon": "^10.0.11",
     "@typescript-eslint/eslint-plugin": "^5.19.0",
     "@typescript-eslint/parser": "^5.19.0",
