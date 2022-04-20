@@ -23,8 +23,7 @@ export type BaseTaskOptions<R> = {
  */
 export abstract class BaseTask<R>
   extends EventEmitter
-  implements BaseTaskOptions<R>
-{
+  implements BaseTaskOptions<R> {
   protected _lifecycle = new EventEmitter();
   protected _isStarting = false;
   protected _isStarted = false;
@@ -223,7 +222,7 @@ export abstract class BaseTask<R>
     this._population++;
     this._lifecycle.emit('tick', { task: this });
 
-    asyncify(this.executable)()
+    this._run()
       .then((result) => [null, result])
       .catch((error) => [error, null])
       .then(([error, result]) => {
@@ -233,6 +232,26 @@ export abstract class BaseTask<R>
 
         this._tock(data);
       });
+  }
+
+  protected async _run() {
+    const successPromise = asyncify(this.executable)();
+
+    const promises = [successPromise];
+
+    if (!is.undef(this.runTimeoutMillis) && this.runTimeoutMillis >= 0) {
+      const failPromise = new Promise<R>((_, reject) => {
+        const message = `Run timeout of ${this.runTimeoutMillis} ms reached`;
+        const error = new TimeoutError(message);
+        setTimeout(() => {
+          reject(error);
+        }, this.runTimeoutMillis);
+      });
+
+      promises.push(failPromise);
+    }
+
+    return Promise.race(promises);
   }
 
   protected _tock(data) {
@@ -258,7 +277,8 @@ export abstract class BaseTask<R>
    */
   protected async _stop() {
     // if no iterations are running, we can just stop right away
-    if (!this.population) {
+    if (!this._population) {
+      this._lifecycle.emit('stopped', { task: this });
       return;
     }
 

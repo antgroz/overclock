@@ -1,5 +1,5 @@
 {
-  "name": "taskracer",
+  "name": "popolo",
   "version": "0.1.0",
   "description": "",
   "keywords": [],
@@ -10,6 +10,9 @@
   "directories": {
     "lib": "lib",
     "test": "test"
+  },
+  "engines": {
+    "node": "^16"
   },
   "scripts": {
     "cov": "c8 mocha",

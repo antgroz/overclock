@@ -1,1 +1,1 @@
-![taskracer](./logo.png 'taskracer')
+![popolo](./logo.png 'popolo')

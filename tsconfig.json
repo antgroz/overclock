@@ -4,8 +4,6 @@
     "lib": ["es2021"],
     "target": "es2021",
     "moduleResolution": "node",
-    "esModuleInterop": true,
-    "resolveJsonModule": true,
     "removeComments": true
   }
 }

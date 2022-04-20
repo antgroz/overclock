@@ -1,13 +1,12 @@
 import { BaseTask, BaseTaskOptions } from './base-task';
 
-export type HeartbeatTaskOptions<R> = BaseTaskOptions<R> & {
+export type HeartbeatTaskOptions<R = any> = BaseTaskOptions<R> & {
   heartbeatIntervalMillis: number;
 };
 
 export class HeartbeatTask<R>
   extends BaseTask<R>
-  implements HeartbeatTaskOptions<R>
-{
+  implements HeartbeatTaskOptions<R> {
   private _interval: NodeJS.Timeout | null = null;
   public heartbeatIntervalMillis: number;
 
