@@ -1,7 +1,7 @@
 'use strict';
 
 var EventEmitter = require('events').EventEmitter;
-var Base = require('../../../lib/tasks/base-task');
+var Base = require('../../../lib/tasks/base');
 var sinon = require('sinon');
 var Promise = require('bluebird');
 var helpers = require('../../helpers/task');

@@ -1,3 +1,15 @@
+export type TaskType = 'heartbeat' | 'reactor';
+export type Task<R = any> = HeartbeatTask<R> | ReactorTask<R>;
+export type TaskOptions<R = any> = {
+  type: TaskType;
+} & HeartbeatTaskOptions<R> &
+  ReactorTaskOptions<R>;
+export type TaskListener = (...args: unknown[]) => void;
+
+export type PrincipeOptions = {
+  tasks?: TaskOptions[];
+};
+
 export type BaseTaskOptions<R> = {
   name: string;
   executable: () => R | Promise<R>;
@@ -11,6 +23,16 @@ export type BaseTaskOptions<R> = {
   gracefulTimeoutMillis: number;
 };
 import { EventEmitter } from 'node:events';
+
+
+export type HeartbeatTaskOptions<R = any> = BaseTaskOptions<R> & {
+  heartbeatIntervalMillis: number;
+};
+
+export type ReactorTaskOptions<R> = BaseTaskOptions<R> & {
+  reactorTimeoutMillis: number;
+};
+
 
 export type Schedule = 'once' | 'periodic' | 'recurrent' | 'sequential';
 
