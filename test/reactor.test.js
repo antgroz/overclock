@@ -1,8 +1,8 @@
 import { describe, it } from 'mocha';
-import { Reactor } from '../../lib/reactor.js';
+import { Reactor } from '../lib/reactor.js';
 import { expect, should } from 'chai';
 import { spy, useFakeTimers } from 'sinon';
-import { Base } from '../../lib/base.js';
+import { Base } from '../lib/base.js';
 
 should();
 

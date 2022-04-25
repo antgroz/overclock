@@ -1,8 +1,8 @@
 import { describe, it } from 'mocha';
 import { expect, should } from 'chai';
-import { Heartbeat } from '../../lib/heartbeat.js';
+import { Heartbeat } from '../lib/heartbeat.js';
 import { spy, useFakeTimers } from 'sinon';
-import { Base } from '../../lib/base.js';
+import { Base } from '../lib/base.js';
 
 should();
 

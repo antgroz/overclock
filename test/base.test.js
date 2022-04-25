@@ -1,9 +1,9 @@
 import { describe, it } from 'mocha';
 import { expect, should, use } from 'chai';
-import { Base } from '../../lib/base';
+import { Base } from '../lib/base';
 import { spy, useFakeTimers } from 'sinon';
 import chaiAsPromised from 'chai-as-promised';
-import { kTock } from '../../lib/symbols';
+import { kTock } from '../lib/symbols';
 
 use(chaiAsPromised);
 should();

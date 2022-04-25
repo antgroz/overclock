@@ -3,7 +3,7 @@ import {
   isNullishOrFiniteNonNegativeNumber,
   isNullishOrFiniteNumber,
   isNullishOrInteger,
-} from '../../lib/is.js';
+} from '../lib/is.js';
 import { should } from 'chai';
 
 should();

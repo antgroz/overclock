@@ -1,4 +1,4 @@
-import * as errors from '../../lib/errors.js';
+import * as errors from '../lib/errors.js';
 import * as chai from 'chai';
 chai.should();
 
