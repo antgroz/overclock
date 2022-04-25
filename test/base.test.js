@@ -1,4 +1,4 @@
-import { describe, it } from 'mocha';
+import { before, describe, it } from 'mocha';
 import { expect, should, use } from 'chai';
 import { Base } from '../lib/base';
 import { spy, useFakeTimers } from 'sinon';
@@ -9,7 +9,11 @@ use(chaiAsPromised);
 should();
 
 describe('base task', () => {
-  const clock = useFakeTimers();
+  let clock;
+
+  before(() => {
+    clock = useFakeTimers();
+  });
 
   describe('constructor', () => {
     it('should set up options correctly', async () => {
@@ -159,6 +163,7 @@ describe('base task', () => {
       if (!global.AbortController) return;
       let signal;
       const task = new Base({
+        name: 'foo',
         executable: (options) => (signal = options.signal),
         runTimeoutMillis: 0,
       });

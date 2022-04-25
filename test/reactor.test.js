@@ -1,4 +1,4 @@
-import { describe, it } from 'mocha';
+import { before, describe, it } from 'mocha';
 import { Reactor } from '../lib/reactor.js';
 import { expect, should } from 'chai';
 import { spy, useFakeTimers } from 'sinon';
@@ -7,7 +7,11 @@ import { Base } from '../lib/base.js';
 should();
 
 describe('reactor', () => {
-  const clock = useFakeTimers();
+  let clock;
+
+  before(() => {
+    clock = useFakeTimers();
+  });
 
   describe('constructor', () => {
     it('should check that reactor timeout is valid', () => {
