@@ -1,9 +1,9 @@
 'use strict';
 
 var Once = require('../../../lib/tasks/once');
-var makeOptions = require('../../helpers/task').makeOptions;
-var LifecycleError = require('../../../lib/util/errors').LifecycleError;
-var TimeoutError = require('../../../lib/util/errors').TimeoutError;
+var makeOptions = require('../helpers/task').makeOptions;
+var LifecycleError = require('../../lib/errors').LifecycleError;
+var TimeoutError = require('../../lib/errors').TimeoutError;
 var sinon = require('sinon');
 var chai = require('chai');
 var expect = chai.expect;
