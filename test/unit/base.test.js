@@ -1,0 +1,572 @@
+import { describe, it } from 'mocha';
+import { expect, should, use } from 'chai';
+import { Base } from '../../lib/base';
+import { spy, useFakeTimers } from 'sinon';
+import chaiAsPromised from 'chai-as-promised';
+import { kTock } from '../../lib/symbols';
+
+use(chaiAsPromised);
+should();
+
+describe('base task', () => {
+  const clock = useFakeTimers();
+
+  describe('constructor', () => {
+    it('should set up options correctly', async () => {
+      const options = {
+        name: 'task',
+        executable: () => 5,
+        concurrencyLimit: 0,
+        livenessThreshold: null,
+        factoryCapacity: 10,
+        generationLimit: 500,
+        startTimeoutMillis: 0,
+        runTimeoutMillis: null,
+        stopTimeoutMillis: null,
+        gracefulTimeoutMillis: 5,
+      };
+
+      const task = new Base(options);
+
+      task.name.should.eq(options.name);
+      task.executable.should.eq(options.executable);
+      task.concurrencyLimit.should.eq(options.concurrencyLimit);
+      task.livenessThreshold.should.eq(-1);
+      task.factoryCapacity.should.eq(options.factoryCapacity);
+      task.generationLimit.should.eq(options.generationLimit);
+      task.startTimeoutMillis.should.eq(options.startTimeoutMillis);
+      task.runTimeoutMillis.should.eq(-1);
+      task.stopTimeoutMillis.should.eq(0);
+      task.gracefulTimeoutMillis.should.eq(options.gracefulTimeoutMillis);
+    });
+  });
+
+  describe('_run', () => {
+    it('should execute the wrapper when unlimited timeout is given', async () => {
+      const task = new Base({ executable: () => 5, runTimeoutMillis: -1 });
+      await task._run().should.eventually.eq(5);
+    });
+
+    it('should throw a timeout error when times out', async () => {
+      const task = new Base({
+        executable: () => new Promise((resolve) => setTimeout(resolve, 5)),
+        runTimeoutMillis: 0,
+      });
+      const error = 'Run timeout of 0 ms reached';
+      const promise = task._run().should.eventually.be.rejectedWith(error);
+      clock.runAll();
+      return promise;
+    });
+
+    it('should pass abort signal if supported', async () => {
+      if (!global.AbortController) return;
+      let signal;
+      const task = new Base({
+        executable: (options) => (signal = options.signal),
+        runTimeoutMillis: 0,
+      });
+      const promise = task._run().should.eventually.be.rejectedWith;
+      clock.runAll();
+      await promise;
+      signal.should.be.instanceof(AbortSignal);
+      signal.aborted.should.be.true;
+    });
+  });
+
+  describe('_tick', () => {
+    it('should increment the counts', async () => {
+      const task = new Base({});
+      task._tick();
+      task.ticks.should.eq(1);
+      task.population.should.eq(1);
+      return clock.runAllAsync();
+    });
+
+    it('should emit a tick event', (done) => {
+      const task = new Base({ executable: () => 5 });
+      task.on('tick', (data) => {
+        data.task.should.eq(task);
+        data.tickAt.should.be.instanceof(Date);
+        expect(data.tockAt).to.be.null;
+        expect(data.result).to.be.null;
+        expect(data.error).to.be.null;
+        done();
+      });
+      task._tick();
+      clock.runAll();
+    });
+
+    it('should call _run', async () => {
+      const task = new Base({ executable: () => 7 });
+      task._run = spy(task, '_run');
+      task._tick();
+      task._run.calledOnce.should.be.true;
+      return clock.runAllAsync();
+    });
+
+    it('should call _tock with results of execution', (done) => {
+      const task = new Base({ executable: () => 7 });
+      task._tock = (data) => {
+        data.task.should.eq(task);
+        data.tickAt.should.be.instanceof(Date);
+        data.tockAt.should.be.instanceof(Date);
+        data.result.should.eq(7);
+        expect(data.error).to.be.null;
+        done();
+      };
+      task._tick();
+    });
+
+    it('should call _tock with errors of execution', (done) => {
+      const error = new Error('something');
+      const task = new Base({
+        executable: () => {
+          throw error;
+        },
+      });
+      task._tock = (data) => {
+        data.task.should.eq(task);
+        data.tickAt.should.be.instanceof(Date);
+        data.tockAt.should.be.instanceof(Date);
+        expect(data.result).to.be.null;
+        data.error.should.eq(error);
+        done();
+      };
+      task._tick();
+    });
+
+    it('should modify the _tick data with results of execution', (done) => {
+      const task = new Base({ executable: () => 5 });
+      let data;
+      task.on('tick', (d) => (data = d));
+      task._tock = () => {
+        data.task.should.eq(task);
+        data.tickAt.should.be.instanceof(Date);
+        data.tockAt.should.be.instanceof(Date);
+        data.result.should.eq(5);
+        expect(data.error).to.be.null;
+        done();
+      };
+      task._tick();
+    });
+  });
+
+  describe('_tock', () => {
+    it('should alter the counters', () => {
+      const task = new Base({});
+      task._tocks = 5;
+      task._population = 3;
+      task._tock({});
+      task.tocks.should.eq(6);
+      task.population.should.eq(2);
+    });
+
+    it('should emit the tock event with data', (done) => {
+      const task = new Base({});
+      let data = {};
+      task.on('tock', (d) => {
+        d.should.eq(data);
+        done();
+      });
+      task._tock(data);
+    });
+  });
+
+  describe('_spawn', () => {
+    it('should emit a spawning event', (done) => {
+      const task = new Base({ generationLimit: 0 });
+      task.on('spawning', () => {
+        done();
+      });
+      task._spawn();
+    });
+
+    it('should emit a spawned event', (done) => {
+      const task = new Base({ generationLimit: 0 });
+      task.on('spawned', () => {
+        done();
+      });
+      task._spawn();
+    });
+
+    it('should emit error when generation limit is 0', (done) => {
+      const task = new Base({ generationLimit: 0 });
+      task.on('spawned', (data) => {
+        const { message } = data.error;
+        message.should.eq('Spawning is inhibited by generation limit of 0');
+        done();
+      });
+      task._spawn();
+    });
+
+    it('should emit error when concurrency limit is 0', (done) => {
+      const task = new Base({ concurrencyLimit: 0 });
+      task.on('spawned', (data) => {
+        const { message } = data.error;
+        message.should.eq('Spawning is inhibited by concurrency limit of 0');
+        done();
+      });
+      task._spawn();
+    });
+
+    it('should emit error when liveness threshold is 0', (done) => {
+      const task = new Base({ livenessThreshold: 0 });
+      task.on('spawned', (data) => {
+        const { message } = data.error;
+        message.should.eq('Spawning is inhibited by liveness threshold of 0');
+        done();
+      });
+      task._spawn();
+    });
+
+    it('should emit error when factory capacity is 0', (done) => {
+      const task = new Base({ factoryCapacity: 0 });
+      task.on('spawned', (data) => {
+        const { message } = data.error;
+        message.should.eq('Spawning is inhibited by factory capacity of 0');
+        done();
+      });
+      task._spawn();
+    });
+
+    it('should emit error when generation limit is reached', (done) => {
+      const task = new Base({ generationLimit: 5 });
+      task._generations = 5;
+      task.on('spawned', (data) => {
+        const { message } = data.error;
+        message.should.eq('Not spawning because generation limit is reached');
+        done();
+      });
+      task._spawn();
+    });
+
+    it('should emit error when concurrency limit is reached', (done) => {
+      const task = new Base({ concurrencyLimit: 2 });
+      task._population = 3;
+      task.on('spawned', (data) => {
+        const { message } = data.error;
+        message.should.eq('Not spawning because concurrency limit is reached');
+        done();
+      });
+      task._spawn();
+    });
+
+    it('should emit error when liveness threshold is satisfied', (done) => {
+      const task = new Base({ livenessThreshold: 3 });
+      task._population = 3;
+      task.on('spawned', (data) => {
+        const { message: m } = data.error;
+        m.should.eq('Not spawning because liveness threshold is satisfied');
+        done();
+      });
+      task._spawn();
+    });
+
+    it('should spawn up to concurrency limit', (done) => {
+      const task = new Base({ concurrencyLimit: 3 });
+      task._population = 1;
+      task._tick = () => {};
+      task.on('spawned', (data) => {
+        data.result.should.eq(2);
+        done();
+      });
+      task._spawn();
+    });
+
+    it('should spawn up to factory capacity', (done) => {
+      const task = new Base({ factoryCapacity: 3 });
+      task._population = 1;
+      task._tick = () => {};
+      task.on('spawned', (data) => {
+        data.result.should.eq(3);
+        done();
+      });
+      task._spawn();
+    });
+
+    it('should satisfy both limits', (done) => {
+      const task = new Base({ concurrencyLimit: 2, factoryCapacity: 3 });
+      task._population = 1;
+      task._tick = () => {};
+      task.on('spawned', (data) => {
+        data.result.should.eq(1);
+        done();
+      });
+      task._spawn();
+    });
+
+    it('should spawn one when there are no limits', (done) => {
+      const task = new Base({});
+      task._population = 1;
+      task._tick = () => {};
+      task.on('spawned', (data) => {
+        data.result.should.eq(1);
+        done();
+      });
+      task._spawn();
+    });
+
+    it('should increment the count of generations when spawning', (done) => {
+      const task = new Base({});
+      task._population = 1;
+      task._tick = () => {};
+      task.on('spawned', () => {
+        task.generations.should.eq(1);
+        done();
+      });
+      task._spawn();
+    });
+
+    it('should not increment the count of generations when not spawning', (done) => {
+      const task = new Base({ factoryCapacity: 0 });
+      task._population = 1;
+      task._tick = () => {};
+      task.on('spawned', () => {
+        task.generations.should.eq(0);
+        done();
+      });
+      task._spawn();
+    });
+
+    it('should call tick as many times as spawning', (done) => {
+      const task = new Base({ factoryCapacity: 5 });
+      task._population = 1;
+      task._tick = spy(() => {});
+      task.on('spawned', () => {
+        task._tick.callCount.should.eq(5);
+        done();
+      });
+      task._spawn();
+    });
+  });
+
+  describe('_start', () => {
+    it('should change the state', () => {
+      const task = new Base({});
+      task._start();
+      expect(task._timeout).to.be.null;
+      task.isStarting.should.be.false;
+      task.isStarted.should.be.true;
+      task.startedAt.should.be.instanceof(Date);
+      task.isStopped.should.be.false;
+    });
+
+    it('should emit a started event', () => {
+      const task = new Base({});
+      let emitted = false;
+      task.on('started', () => (emitted = true));
+      task._start();
+      emitted.should.be.true;
+    });
+  });
+
+  describe('start', () => {
+    it('should throw an error if task is starting', () => {
+      const task = new Base({});
+      task._isStarting = true;
+      task.start.bind(task).should.throw('Task is already starting');
+    });
+
+    it('should throw an error if task is started', () => {
+      const task = new Base({});
+      task._isStarted = true;
+      task.start.bind(task).should.throw('Task is already started');
+    });
+
+    it('should change the state of the task', () => {
+      const task = new Base({});
+      task.start();
+      task.isStarting.should.be.true;
+      task.startingAt.should.be.instanceof(Date);
+      clock.runAll();
+    });
+
+    it('should emit a starting event', () => {
+      const task = new Base({});
+      let emitted = false;
+      task.on('starting', () => (emitted = true));
+      task.start();
+      clock.runAll();
+      emitted.should.be.true;
+    });
+
+    it('should schedule the start of the task', () => {
+      const task = new Base({});
+      task.start();
+      task._timeout.should.not.be.null;
+      clock.runAll();
+    });
+
+    it('should call the _start method', () => {
+      const task = new Base({});
+      task._start = spy();
+      task.start();
+      clock.runAll();
+      task._start.calledOnce.should.be.true;
+    });
+  });
+
+  describe('_stop', () => {
+    it('should clear the timeout', () => {
+      const task = new Base({});
+      task._timeout = setTimeout(() => null, 3000);
+      task._stop();
+      expect(task._timeout).to.be.null;
+    });
+
+    it('should change the state of the task', () => {
+      const task = new Base({});
+      task._isStarted = true;
+      task._stop();
+      task.isStarting.should.be.false;
+      task.isStarted.should.be.false;
+      task.isStopping.should.be.false;
+      task.isStopped.should.be.true;
+      task.stoppedAt.should.be.instanceof(Date);
+    });
+
+    it('should emit the stopped event', (done) => {
+      const task = new Base({});
+      task.on('stopped', () => {
+        done();
+      });
+      task._stop();
+    });
+  });
+
+  describe('_tryStop', () => {
+    it('should stop right away when population is zero', async () => {
+      const task = new Base({});
+      await task._tryStop();
+      task.isStopped.should.be.true;
+    });
+
+    it('should stop right away when population is zero', async () => {
+      const task = new Base({});
+      await task._tryStop();
+      task.isStopped.should.be.true;
+    });
+
+    it('should wait for entire population to tock', (done) => {
+      const task = new Base({});
+      let calls = 0;
+      task._population = 3;
+      task.prependListener(kTock, () => calls++);
+      task._tryStop().then(() => {
+        calls.should.eq(3);
+        task.listenerCount(kTock).should.eq(0);
+        done();
+      });
+      while (task.population) {
+        task._tock();
+      }
+    });
+
+    it('should throw if graceful timeout is fired', async () => {
+      const task = new Base({ gracefulTimeoutMillis: 100 });
+      task._population = 3;
+      const message = 'Graceful timeout of 100 ms reached';
+      const promise = task
+        ._tryStop()
+        .should.eventually.be.rejectedWith(message);
+      await clock.runAllAsync();
+      return promise;
+    });
+
+    it('should not prevent stopping if graceful timeout fires', async () => {
+      const task = new Base({ gracefulTimeoutMillis: 100 });
+      task._population = 3;
+      let error = null;
+      task._tryStop().catch((e) => (error = e));
+      await clock.runAllAsync();
+      while (task.population) {
+        task._tock();
+      }
+      error.should.not.be.null;
+      task.isStopped.should.be.true;
+    });
+  });
+
+  describe('stop', () => {
+    it('should throw if task is stopping', async () => {
+      const task = new Base({});
+      task._isStopping = true;
+      const error = 'Task cannot be stopped again while it is stopping';
+      await task.stop().should.eventually.be.rejectedWith(error);
+    });
+
+    it('should throw if task is stopped', async () => {
+      const task = new Base({});
+      task._isStopped = true;
+      const error = 'Task is already stopped';
+      await task.stop().should.eventually.be.rejectedWith(error);
+    });
+
+    it('should change the state of the task', async () => {
+      const task = new Base({});
+      task._isStopped = false;
+      task._isStarted = true;
+      task._stop = async () => {};
+      task.stop();
+      task.isStopping.should.be.true;
+      task.stoppingAt.should.be.instanceof(Date);
+      await clock.runAllAsync();
+    });
+
+    it('should emit a stopping event', async () => {
+      const task = new Base({});
+      task._isStopping = false;
+      task._isStarted = true;
+      task._stop = async () => {};
+      let emitted = false;
+      task.on('stopping', () => (emitted = true));
+      task.stop();
+      await clock.runAllAsync();
+      emitted.should.be.true;
+    });
+
+    it('should schedule the stopping of the task', async () => {
+      const task = new Base({});
+      task._stop = async () => {};
+      task.stop();
+      task._timeout.should.not.be.null;
+      await clock.runAllAsync();
+    });
+
+    it('should call the _stop method', async () => {
+      const task = new Base({});
+      task._stop = spy(async () => {});
+      task.stop();
+      await clock.runAllAsync();
+      task._stop.calledOnce.should.be.true;
+    });
+
+    it('should clear the timeout and set it to null when fires', async () => {
+      const task = new Base({});
+      task._stop = async () => {
+        expect(task._timeout).to.be.null;
+        await clock.runAllAsync();
+      };
+      task.stop();
+    });
+
+    it('should resolve when _stop resolves', async () => {
+      const task = new Base({});
+      task._stop = async () => {};
+      const promise = task.stop().should.eventually.be.undefined;
+      await clock.runAllAsync();
+      return promise;
+    });
+
+    it('should reject when _stop rejects', async () => {
+      const task = new Base({});
+      const message = 'something';
+      task._stop = async () => {
+        throw new Error(message);
+      };
+      const promise = task.stop().should.eventually.be.rejectedWith(message);
+      await clock.runAllAsync();
+      return promise;
+    });
+  });
+});
