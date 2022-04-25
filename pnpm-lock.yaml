@@ -2,12 +2,15 @@ lockfileVersion: 5.3
 
 specifiers:
   '@types/chai': ^4.3.1
+  '@types/chai-as-promised': ^7.1.5
   '@types/mocha': ^9.1.0
+  '@types/node': ^14.18.13
   '@types/sinon': ^10.0.11
   '@typescript-eslint/eslint-plugin': ^5.19.0
   '@typescript-eslint/parser': ^5.19.0
   c8: ^7.11.0
   chai: ^4.3.6
+  chai-as-promised: ^7.1.1
   esbuild: ^0.14.36
   esbuild-register: ^3.3.2
   eslint: ^8.12.0
@@ -20,12 +23,15 @@ specifiers:
 
 devDependencies:
   '@types/chai': 4.3.1
+  '@types/chai-as-promised': 7.1.5
   '@types/mocha': 9.1.0
+  '@types/node': 14.18.13
   '@types/sinon': 10.0.11
   '@typescript-eslint/eslint-plugin': 5.19.0_57cd91036ce91607c64acb216863f188
   '@typescript-eslint/parser': 5.19.0_eslint@8.12.0+typescript@4.6.3
   c8: 7.11.0
   chai: 4.3.6
+  chai-as-promised: 7.1.1_chai@4.3.6
   esbuild: 0.14.36
   esbuild-register: 3.3.2_esbuild@0.14.36
   eslint: 8.12.0
@@ -133,6 +139,12 @@ packages:
     resolution: {integrity: sha512-+iTbntw2IZPb/anVDbypzfQa+ay64MW0Zo8aJ8gZPWMMK6/OubMVb6lUPMagqjOPnmtauXnFCACVl3O7ogjeqQ==}
     dev: true
 
+  /@types/chai-as-promised/7.1.5:
+    resolution: {integrity: sha512-jStwss93SITGBwt/niYrkf2C+/1KTeZCZl1LaeezTlqppAKeoQC7jxyqYuP72sxBGKCIbw7oHgbYssIRzT5FCQ==}
+    dependencies:
+      '@types/chai': 4.3.1
+    dev: true
+
   /@types/chai/4.3.1:
     resolution: {integrity: sha512-/zPMqDkzSZ8t3VtxOa4KPq7uzzW978M9Tvh+j7GHKuo6k6GTLxPJ4J5gE5cjfJ26pnXst0N5Hax8Sr0T2Mi9zQ==}
     dev: true
@@ -147,6 +159,10 @@ packages:
 
   /@types/mocha/9.1.0:
     resolution: {integrity: sha512-QCWHkbMv4Y5U9oW10Uxbr45qMMSzl4OzijsozynUAgx3kEHUdXB00udx2dWDQ7f2TU2a2uuiFaRZjCe3unPpeg==}
+    dev: true
+
+  /@types/node/14.18.13:
+    resolution: {integrity: sha512-Z6/KzgyWOga3pJNS42A+zayjhPbf2zM3hegRQaOPnLOzEi86VV++6FLDWgR1LGrVCRufP/ph2daa3tEa5br1zA==}
     dev: true
 
   /@types/sinon/10.0.11:
@@ -404,6 +420,15 @@ packages:
   /camelcase/6.3.0:
     resolution: {integrity: sha512-Gmy6FhYlCY7uOElZUSbxo2UCDH8owEk996gkbrpsgGtrJLM3J7jGxl9Ic7Qwwj4ivOE5AWZWRMecDdF7hqGjFA==}
     engines: {node: '>=10'}
+    dev: true
+
+  /chai-as-promised/7.1.1_chai@4.3.6:
+    resolution: {integrity: sha512-azL6xMoi+uxu6z4rhWQ1jbdUhOMhis2PvscD/xjLqNMkv3BPPp2JyyuTHOrf9BOosGpNQ11v6BKv/g57RXbiaA==}
+    peerDependencies:
+      chai: '>= 2.1.2 < 5'
+    dependencies:
+      chai: 4.3.6
+      check-error: 1.0.2
     dev: true
 
   /chai/4.3.6:
