@@ -1,1 +1,1 @@
-![popolo](./logo.png 'popolo')
+![overclock](./logo.png 'overclock')
