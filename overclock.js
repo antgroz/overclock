@@ -1,17 +1,13 @@
-'use strict';
-
-const Principe = require('./lib/principe');
+import { Manager } from './lib/manager.js';
 
 /**
  * Initialize a new instance
  *
- * @param {object} options - Racer options
- * @returns {Principe} - New instance
+ * @param {object} options - Manager options
+ * @returns {Manager} - New instance
  */
-function popolo(options) {
-  return new Principe(options);
+export function overclock(options) {
+  return new Manager(options);
 }
 
-module.exports = popolo;
-module.exports.popolo = popolo;
-module.exports.default = popolo;
+export default overclock;
