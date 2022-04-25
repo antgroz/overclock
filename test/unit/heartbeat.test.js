@@ -1,12 +1,14 @@
 import { describe, it } from 'mocha';
 import { expect, should } from 'chai';
-import { Heartbeat } from '../../lib/heartbeat';
-import { spy } from 'sinon';
-import { Base } from '../../lib/base';
+import { Heartbeat } from '../../lib/heartbeat.js';
+import { spy, useFakeTimers } from 'sinon';
+import { Base } from '../../lib/base.js';
 
 should();
 
 describe('heartbeat', () => {
+  const clock = useFakeTimers();
+
   describe('constructor', () => {
     it('should set up additional parameters', () => {
       const task = new Heartbeat({ heartbeatIntervalMillis: 300 });
@@ -25,6 +27,7 @@ describe('heartbeat', () => {
       task._spawn = () => {};
       task._start();
       task._interval.should.not.be.null;
+      clock.next();
       clearInterval(task._interval);
     });
 
