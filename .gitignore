@@ -1,5 +1,6 @@
 .idea
 .vscode
+./overclock.js
 coverage
 dist
 node_modules
