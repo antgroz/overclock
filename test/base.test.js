@@ -1,9 +1,14 @@
-import { before, describe, it } from 'mocha';
-import { expect, should, use } from 'chai';
-import { Base } from '../lib/base';
-import { spy, useFakeTimers } from 'sinon';
-import chaiAsPromised from 'chai-as-promised';
-import { kTock } from '../lib/symbols';
+const { before, describe, it } = require('mocha');
+const { expect, should, use } = require('chai');
+const Base = require('../lib/base');
+const { spy, useFakeTimers } = require('sinon');
+const chaiAsPromised = require('chai-as-promised');
+const { kTock } = require('../lib/symbols');
+const {
+  DEFAULT_LIVENESS_THRESHOLD,
+  DEFAULT_RUN_TIMEOUT,
+  DEFAULT_STOP_TIMEOUT,
+} = require('../lib/constants');
 
 use(chaiAsPromised);
 should();
@@ -35,12 +40,12 @@ describe('base task', () => {
       task.name.should.eq(options.name);
       task.executable.should.eq(options.executable);
       task.concurrencyLimit.should.eq(options.concurrencyLimit);
-      task.livenessThreshold.should.eq(-1);
+      task.livenessThreshold.should.eq(DEFAULT_LIVENESS_THRESHOLD);
       task.factoryCapacity.should.eq(options.factoryCapacity);
       task.generationLimit.should.eq(options.generationLimit);
       task.startTimeoutMillis.should.eq(options.startTimeoutMillis);
-      task.runTimeoutMillis.should.eq(-1);
-      task.stopTimeoutMillis.should.eq(0);
+      task.runTimeoutMillis.should.eq(DEFAULT_RUN_TIMEOUT);
+      task.stopTimeoutMillis.should.eq(DEFAULT_STOP_TIMEOUT);
       task.gracefulTimeoutMillis.should.eq(options.gracefulTimeoutMillis);
     });
 
@@ -134,6 +139,90 @@ describe('base task', () => {
       const ctor = () => new Base(options);
       const message = 'Task graceful timeout must be a finite number';
       ctor.should.throw(message);
+    });
+  });
+
+  describe('_starting', () => {
+    it('should change the state', () => {
+      const task = new Base({ name: 'foo', executable: () => 0 });
+      task._starting();
+      task.isStarting.should.be.true;
+      task.startingAt.should.be.instanceof(Date);
+      clock.runAll();
+    });
+
+    it('should emit a starting event', (done) => {
+      const task = new Base({ name: 'foo', executable: () => 0 });
+      task.on('starting', () => {
+        done();
+      });
+      task._starting();
+      clock.runAll();
+    });
+  });
+
+  describe('_started', () => {
+    it('should change the state', () => {
+      const task = new Base({ name: 'foo', executable: () => 0 });
+      task._started();
+      expect(task._timeout).to.be.null;
+      task.isStarting.should.be.false;
+      task.isStarted.should.be.true;
+      task.startedAt.should.be.instanceof(Date);
+      task.isStopped.should.be.false;
+    });
+
+    it('should emit a started event', (done) => {
+      const task = new Base({ name: 'foo', executable: () => 0 });
+      task.on('started', () => {
+        done();
+      });
+      task._started();
+    });
+  });
+
+  describe('_stopping', () => {
+    it('should change the state of the task', () => {
+      const task = new Base({ name: 'foo', executable: () => 0 });
+      task._stopping();
+      task.isStopping.should.be.true;
+      task.stoppingAt.should.be.instanceof(Date);
+    });
+
+    it('should emit a stopping event', (done) => {
+      const task = new Base({ name: 'foo', executable: () => 0 });
+      task.on('stopping', () => {
+        done();
+      });
+      task._stopping();
+    });
+  });
+
+  describe('_stopped', () => {
+    it('should clear the timeout', () => {
+      const task = new Base({ name: 'foo', executable: () => 0 });
+      task._timeout = setTimeout(() => null, 3000);
+      task._stopped();
+      expect(task._timeout).to.be.null;
+    });
+
+    it('should change the state of the task', () => {
+      const task = new Base({ name: 'foo', executable: () => 0 });
+      task._isStarted = true;
+      task._stopped();
+      task.isStarting.should.be.false;
+      task.isStarted.should.be.false;
+      task.isStopping.should.be.false;
+      task.isStopped.should.be.true;
+      task.stoppedAt.should.be.instanceof(Date);
+    });
+
+    it('should emit the stopped event', (done) => {
+      const task = new Base({ name: 'foo', executable: () => 0 });
+      task.on('stopped', () => {
+        done();
+      });
+      task._stopped();
     });
   });
 
@@ -317,6 +406,19 @@ describe('base task', () => {
       task._spawn();
     });
 
+    it('should initiate stopping when generation limit is 0', () => {
+      const task = new Base({
+        name: 'foo',
+        executable: () => 0,
+        generationLimit: 0,
+      });
+      task._stopping = spy();
+      task._tryStop = spy();
+      task._spawn();
+      task._stopping.calledOnce.should.be.true;
+      task._tryStop.calledOnce.should.be.true;
+    });
+
     it('should emit error when concurrency limit is 0', (done) => {
       const task = new Base({
         name: 'foo',
@@ -329,6 +431,19 @@ describe('base task', () => {
         done();
       });
       task._spawn();
+    });
+
+    it('should initiate stopping when concurrency limit limit is 0', () => {
+      const task = new Base({
+        name: 'foo',
+        executable: () => 0,
+        concurrencyLimit: 0,
+      });
+      task._stopping = spy();
+      task._tryStop = spy();
+      task._spawn();
+      task._stopping.calledOnce.should.be.true;
+      task._tryStop.calledOnce.should.be.true;
     });
 
     it('should emit error when liveness threshold is 0', (done) => {
@@ -345,6 +460,19 @@ describe('base task', () => {
       task._spawn();
     });
 
+    it('should initiate stopping when liveness threshold is 0', () => {
+      const task = new Base({
+        name: 'foo',
+        executable: () => 0,
+        livenessThreshold: 0,
+      });
+      task._stopping = spy();
+      task._tryStop = spy();
+      task._spawn();
+      task._stopping.calledOnce.should.be.true;
+      task._tryStop.calledOnce.should.be.true;
+    });
+
     it('should emit error when factory capacity is 0', (done) => {
       const task = new Base({
         name: 'foo',
@@ -357,6 +485,19 @@ describe('base task', () => {
         done();
       });
       task._spawn();
+    });
+
+    it('should initiate stopping when factory capacity is 0', () => {
+      const task = new Base({
+        name: 'foo',
+        executable: () => 0,
+        factoryCapacity: 0,
+      });
+      task._stopping = spy();
+      task._tryStop = spy();
+      task._spawn();
+      task._stopping.calledOnce.should.be.true;
+      task._tryStop.calledOnce.should.be.true;
     });
 
     it('should emit error when generation limit is reached', (done) => {
@@ -372,6 +513,20 @@ describe('base task', () => {
         done();
       });
       task._spawn();
+    });
+
+    it('should initiate stopping when generation limit is reached', () => {
+      const task = new Base({
+        name: 'foo',
+        executable: () => 0,
+        generationLimit: 5,
+      });
+      task._generations = 5;
+      task._stopping = spy();
+      task._tryStop = spy();
+      task._spawn();
+      task._stopping.calledOnce.should.be.true;
+      task._tryStop.calledOnce.should.be.true;
     });
 
     it('should emit error when concurrency limit is reached', (done) => {
@@ -503,26 +658,6 @@ describe('base task', () => {
     });
   });
 
-  describe('_start', () => {
-    it('should change the state', () => {
-      const task = new Base({ name: 'foo', executable: () => 0 });
-      task._start();
-      expect(task._timeout).to.be.null;
-      task.isStarting.should.be.false;
-      task.isStarted.should.be.true;
-      task.startedAt.should.be.instanceof(Date);
-      task.isStopped.should.be.false;
-    });
-
-    it('should emit a started event', () => {
-      const task = new Base({ name: 'foo', executable: () => 0 });
-      let emitted = false;
-      task.on('started', () => (emitted = true));
-      task._start();
-      emitted.should.be.true;
-    });
-  });
-
   describe('start', () => {
     it('should throw an error if task is starting', () => {
       const task = new Base({ name: 'foo', executable: () => 0 });
@@ -536,21 +671,12 @@ describe('base task', () => {
       task.start.bind(task).should.throw('Task is already started');
     });
 
-    it('should change the state of the task', () => {
+    it('should call the _starting method', () => {
       const task = new Base({ name: 'foo', executable: () => 0 });
+      task._starting = spy()
       task.start();
-      task.isStarting.should.be.true;
-      task.startingAt.should.be.instanceof(Date);
+      task._starting.calledOnce.should.be.true;
       clock.runAll();
-    });
-
-    it('should emit a starting event', () => {
-      const task = new Base({ name: 'foo', executable: () => 0 });
-      let emitted = false;
-      task.on('starting', () => (emitted = true));
-      task.start();
-      clock.runAll();
-      emitted.should.be.true;
     });
 
     it('should schedule the start of the task', () => {
@@ -560,40 +686,12 @@ describe('base task', () => {
       clock.runAll();
     });
 
-    it('should call the _start method', () => {
+    it('should call the _started method', () => {
       const task = new Base({ name: 'foo', executable: () => 0 });
-      task._start = spy();
+      task._started = spy();
       task.start();
       clock.runAll();
-      task._start.calledOnce.should.be.true;
-    });
-  });
-
-  describe('_stop', () => {
-    it('should clear the timeout', () => {
-      const task = new Base({ name: 'foo', executable: () => 0 });
-      task._timeout = setTimeout(() => null, 3000);
-      task._stop();
-      expect(task._timeout).to.be.null;
-    });
-
-    it('should change the state of the task', () => {
-      const task = new Base({ name: 'foo', executable: () => 0 });
-      task._isStarted = true;
-      task._stop();
-      task.isStarting.should.be.false;
-      task.isStarted.should.be.false;
-      task.isStopping.should.be.false;
-      task.isStopped.should.be.true;
-      task.stoppedAt.should.be.instanceof(Date);
-    });
-
-    it('should emit the stopped event', (done) => {
-      const task = new Base({ name: 'foo', executable: () => 0 });
-      task.on('stopped', () => {
-        done();
-      });
-      task._stop();
+      task._started.calledOnce.should.be.true;
     });
   });
 
@@ -673,27 +771,12 @@ describe('base task', () => {
       await task.stop().should.eventually.be.rejectedWith(error);
     });
 
-    it('should change the state of the task', async () => {
+    it('should call the _stopping method', async () => {
       const task = new Base({ name: 'foo', executable: () => 0 });
-      task._isStopped = false;
-      task._isStarted = true;
-      task._stop = async () => {};
-      task.stop();
-      task.isStopping.should.be.true;
-      task.stoppingAt.should.be.instanceof(Date);
-      await clock.runAllAsync();
-    });
-
-    it('should emit a stopping event', async () => {
-      const task = new Base({ name: 'foo', executable: () => 0 });
-      task._isStopping = false;
-      task._isStarted = true;
-      task._stop = async () => {};
-      let emitted = false;
-      task.on('stopping', () => (emitted = true));
+      task._stopping = spy();
       task.stop();
       await clock.runAllAsync();
-      emitted.should.be.true;
+      task._stopping.calledOnce.should.be.true;
     });
 
     it('should schedule the stopping of the task', async () => {
@@ -702,14 +785,6 @@ describe('base task', () => {
       task.stop();
       task._timeout.should.not.be.null;
       await clock.runAllAsync();
-    });
-
-    it('should call the _stop method', async () => {
-      const task = new Base({ name: 'foo', executable: () => 0 });
-      task._stop = spy(async () => {});
-      task.stop();
-      await clock.runAllAsync();
-      task._stop.calledOnce.should.be.true;
     });
 
     it('should clear the timeout and set it to null when fires', async () => {
@@ -721,18 +796,18 @@ describe('base task', () => {
       task.stop();
     });
 
-    it('should resolve when _stop resolves', async () => {
+    it('should resolve when _stopped resolves', async () => {
       const task = new Base({ name: 'foo', executable: () => 0 });
-      task._stop = async () => {};
+      task._stopped = async () => {};
       const promise = task.stop().should.eventually.be.undefined;
       await clock.runAllAsync();
       return promise;
     });
 
-    it('should reject when _stop rejects', async () => {
+    it('should reject when _stopped rejects', async () => {
       const task = new Base({ name: 'foo', executable: () => 0 });
       const message = 'something';
-      task._stop = async () => {
+      task._stopped = async () => {
         throw new Error(message);
       };
       const promise = task.stop().should.eventually.be.rejectedWith(message);

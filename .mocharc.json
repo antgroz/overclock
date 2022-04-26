@@ -1,5 +1,4 @@
 {
-  "require": ["esbuild-register"],
   "recursive": true,
   "color": true,
   "diff": true

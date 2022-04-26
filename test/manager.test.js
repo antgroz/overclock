@@ -1,11 +1,11 @@
-import { describe, it } from 'mocha';
-import { expect, should, use } from 'chai';
-import { EVENTS } from '../lib/constants.js';
-import { Manager } from '../lib/manager.js';
-import { spy } from 'sinon';
-import { Heartbeat } from '../lib/heartbeat.js';
-import { Base } from '../lib/base.js';
-import chaiAsPromised from 'chai-as-promised';
+const { describe, it } = require('mocha');
+const { expect, should, use } = require('chai');
+const { EVENTS } = require('../lib/constants');
+const Manager = require('../lib/manager');
+const { spy } = require('sinon');
+const Heartbeat = require('../lib/heartbeat');
+const Base = require('../lib/base');
+const chaiAsPromised = require('chai-as-promised');
 
 use(chaiAsPromised);
 should();

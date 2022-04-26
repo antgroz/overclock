@@ -1,6 +1,8 @@
-import * as errors from '../lib/errors.js';
-import * as chai from 'chai';
-chai.should();
+const { describe, it } = require('mocha');
+const errors = require('../lib/errors');
+const { should } = require('chai');
+
+should();
 
 describe('errors', () => {
   for (const name in errors) {

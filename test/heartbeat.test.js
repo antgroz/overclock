@@ -1,8 +1,8 @@
-import { before, describe, it } from 'mocha';
-import { expect, should } from 'chai';
-import { Heartbeat } from '../lib/heartbeat.js';
-import { spy, useFakeTimers } from 'sinon';
-import { Base } from '../lib/base.js';
+const { before, describe, it } = require('mocha');
+const { expect, should } = require('chai');
+const Heartbeat = require('../lib/heartbeat');
+const { spy, useFakeTimers } = require('sinon');
+const Base = require('../lib/base');
 
 should();
 
@@ -45,7 +45,7 @@ describe('heartbeat', () => {
     it('should set up the heartbeat interval', () => {
       const task = new Heartbeat({ name: 'foo', executable: () => null });
       task._spawn = () => {};
-      task._start();
+      task._started();
       task._interval.should.not.be.null;
       clock.next();
       clearInterval(task._interval);
@@ -54,17 +54,17 @@ describe('heartbeat', () => {
     it('should call _spawn method right away', () => {
       const task = new Heartbeat({ name: 'foo', executable: () => null });
       task._spawn = spy();
-      task._start();
+      task._started();
       task._spawn.calledOnce.should.be.true;
       clearInterval(task._interval);
     });
 
-    it('should call parent _start method', () => {
+    it('should call parent _started method', () => {
       const task = new Heartbeat({ name: 'foo', executable: () => null });
       task._spawn = () => {};
-      Base.prototype._start = spy();
-      task._start();
-      Base.prototype._start.calledOnce.should.be.true;
+      Base.prototype._started = spy();
+      task._started();
+      Base.prototype._started.calledOnce.should.be.true;
       clearInterval(task._interval);
     });
   });

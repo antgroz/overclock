@@ -1,8 +1,8 @@
-import { before, describe, it } from 'mocha';
-import { Reactor } from '../lib/reactor.js';
-import { expect, should } from 'chai';
-import { spy, useFakeTimers } from 'sinon';
-import { Base } from '../lib/base.js';
+const { before, describe, it } = require('mocha');
+const Reactor = require('../lib/reactor');
+const { expect, should } = require('chai');
+const { spy, useFakeTimers } = require('sinon');
+const Base = require('../lib/base');
 
 should();
 
@@ -45,16 +45,16 @@ describe('reactor', () => {
     it('should spawn the first generation', () => {
       const task = new Reactor({ name: 'foo', executable: () => null });
       task._spawn = spy();
-      task._start();
+      task._started();
       task._spawn.calledOnce.should.be.true;
     });
 
-    it('should call the parent _start method', () => {
+    it('should call the parent _started method', () => {
       const task = new Reactor({ name: 'foo', executable: () => null });
-      Base.prototype._start = spy();
+      Base.prototype._started = spy();
       task._spawn = () => {};
-      task._start();
-      Base.prototype._start.calledOnce.should.be.true;
+      task._started();
+      Base.prototype._started.calledOnce.should.be.true;
     });
   });
 
