@@ -659,16 +659,16 @@ describe('base task', () => {
   });
 
   describe('start', () => {
-    it('should throw an error if task is starting', () => {
+    it('should do nothing if task is starting', () => {
       const task = new Base({ name: 'foo', executable: () => 0 });
       task._isStarting = true;
-      task.start.bind(task).should.throw('Task is already starting');
+      task.start();
     });
 
-    it('should throw an error if task is started', () => {
+    it('should do nothing if task is started', () => {
       const task = new Base({ name: 'foo', executable: () => 0 });
       task._isStarted = true;
-      task.start.bind(task).should.throw('Task is already started');
+      task.start();
     });
 
     it('should call the _starting method', () => {
@@ -757,20 +757,6 @@ describe('base task', () => {
   });
 
   describe('stop', () => {
-    it('should throw if task is stopping', async () => {
-      const task = new Base({ name: 'foo', executable: () => 0 });
-      task._isStopping = true;
-      const error = 'Task cannot be stopped again while it is stopping';
-      await task.stop().should.eventually.be.rejectedWith(error);
-    });
-
-    it('should throw if task is stopped', async () => {
-      const task = new Base({ name: 'foo', executable: () => 0 });
-      task._isStopped = true;
-      const error = 'Task is already stopped';
-      await task.stop().should.eventually.be.rejectedWith(error);
-    });
-
     it('should call the _stopping method', async () => {
       const task = new Base({ name: 'foo', executable: () => 0 });
       task._stopping = spy();
@@ -813,6 +799,43 @@ describe('base task', () => {
       const promise = task.stop().should.eventually.be.rejectedWith(message);
       await clock.runAllAsync();
       return promise;
+    });
+
+    it('should save the stop promise', async () => {
+      const task = new Base({ name: 'foo', executable: () => 0 });
+      task._isStarted = true;
+      task._tryStop = async () => {};
+      task.stop();
+      task._promise.should.not.be.undefined;
+      await clock.runAllAsync();
+    });
+
+    it('should delete the promise when settles', async () => {
+      const task = new Base({ name: 'foo', executable: () => 0 });
+      task._isStarted = true;
+      task._tryStop = async () => {};
+      task.stop();
+      task._promise.should.not.be.undefined;
+      await clock.runAllAsync();
+      expect(task._promise).to.be.null;
+    });
+
+    it('should return the same promise if task is stopping', async () => {
+      const task = new Base({ name: 'foo', executable: () => 0 });
+      task._isStarted = true;
+      task._tryStop = async () => {};
+      task.stop();
+      const promise1 = task._promise;
+      task.stop();
+      const promise2 = task._promise;
+      promise1.should.eq(promise2);
+      await clock.runAllAsync();
+    });
+
+    it('should do nothing if task is stopped', async () => {
+      const task = new Base({ name: 'foo', executable: () => 0 });
+      task._isStopped = true;
+      await task.stop();
     });
   });
 });
