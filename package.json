@@ -5,17 +5,13 @@
   "keywords": [],
   "author": "Anton Groznykh <antongroznykh@gmail.com> (https://github.com/antgroz)",
   "license": "MIT",
-  "main": "popolo.js",
-  "types": "taskracer.d.ts",
-  "directories": {
-    "lib": "lib",
-    "test": "test"
-  },
+  "main": "dist/index.js",
+  "types": "overclock.d.ts",
   "engines": {
     "node": "^14 || ^16"
   },
   "scripts": {
-    "build": "esbuild ./lib/overclock.js --bundle --minify --sourcemap --platform=node --target=node14 --outfile=./dist/index.js",
+    "build": "esbuild ./lib/overclock.js --bundle --minify --platform=node --target=node14 --outfile=./dist/index.js",
     "cov": "c8 mocha",
     "format": "prettier --write .",
     "lint": "eslint --fix .",
