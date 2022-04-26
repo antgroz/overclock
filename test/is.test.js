@@ -1,5 +1,6 @@
 import { describe, it } from 'mocha';
 import {
+  isNullish,
   isNullishOrFiniteNonNegativeNumber,
   isNullishOrFiniteNumber,
   isNullishOrInteger,
@@ -9,6 +10,20 @@ import { should } from 'chai';
 should();
 
 describe('is', () => {
+  describe('is nullish', () => {
+    for (const value of [null, undefined]) {
+      it(`should return true for ${value}`, () => {
+        isNullish(value).should.be.true;
+      });
+    }
+
+    for (const value of ['foo', 3, -2, 1.1, Number.NEGATIVE_INFINITY]) {
+      it(`should return false for ${value}`, () => {
+        isNullish(value).should.be.false;
+      });
+    }
+  });
+
   describe('is nullish or integer', () => {
     for (const value of [null, undefined, 3, 0, -2]) {
       it(`should return true for ${value}`, () => {
