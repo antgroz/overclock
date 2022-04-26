@@ -673,7 +673,7 @@ describe('base task', () => {
 
     it('should call the _starting method', () => {
       const task = new Base({ name: 'foo', executable: () => 0 });
-      task._starting = spy()
+      task._starting = spy();
       task.start();
       task._starting.calledOnce.should.be.true;
       clock.runAll();

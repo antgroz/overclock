@@ -6,9 +6,5 @@
   "parserOptions": {
     "sourceType": "module"
   },
-  "extends": [
-    "eslint:recommended",
-    "plugin:jsdoc/recommended",
-    "prettier"
-  ]
+  "extends": ["eslint:recommended", "plugin:jsdoc/recommended", "prettier"]
 }
