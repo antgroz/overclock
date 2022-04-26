@@ -1,12 +1,49 @@
 {
   "name": "overclock",
   "version": "0.1.0",
-  "description": "",
-  "keywords": [],
+  "description": "A powerful task scheduler to overclock the event loop ⚡⚡⚡",
+  "keywords": [
+    "agenda",
+    "async",
+    "cron",
+    "cronjob",
+    "crontab",
+    "emitter",
+    "event",
+    "graceful",
+    "heartbeat",
+    "immediate",
+    "interval",
+    "job",
+    "overclock",
+    "periodic",
+    "reactor",
+    "recurrent",
+    "run",
+    "runner",
+    "schedule",
+    "scheduler",
+    "task",
+    "tasker",
+    "time",
+    "timeout",
+    "timer"
+  ],
   "author": "Anton Groznykh <antongroznykh@gmail.com> (https://github.com/antgroz)",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/antgroz/overclock.git"
+  },
+  "bugs": {
+    "url": "https://github.com/antgroz/overclock/issues"
+  },
   "main": "overclock.js",
   "types": "overclock.d.ts",
+  "directories": {
+    "lib": "lib",
+    "test": "test"
+  },
   "engines": {
     "node": "^14 || ^16"
   },
