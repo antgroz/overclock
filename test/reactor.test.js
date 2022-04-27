@@ -1,4 +1,4 @@
-const { before, describe, it } = require('mocha');
+const { before, describe, it, after } = require('mocha');
 const Reactor = require('../lib/reactor');
 const { expect, should } = require('chai');
 const { spy, useFakeTimers } = require('sinon');
@@ -11,6 +11,10 @@ describe('reactor', () => {
 
   before(() => {
     clock = useFakeTimers();
+  });
+
+  after(() => {
+    clock.restore();
   });
 
   describe('constructor', () => {

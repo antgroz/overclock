@@ -1,4 +1,4 @@
-const { before, describe, it } = require('mocha');
+const { before, after, describe, it } = require('mocha');
 const { expect, should, use } = require('chai');
 const Base = require('../lib/base');
 const { spy, useFakeTimers } = require('sinon');
@@ -18,6 +18,10 @@ describe('base task', () => {
 
   before(() => {
     clock = useFakeTimers();
+  });
+
+  after(() => {
+    clock.restore();
   });
 
   describe('constructor', () => {
@@ -623,7 +627,7 @@ describe('base task', () => {
         name: 'foo',
         executable: () => 0,
         livenessThreshold: 3,
-        concurrencyLimit: -1
+        concurrencyLimit: -1,
       });
       task._population = 3;
       task.on('spawned', (data) => {
@@ -655,7 +659,7 @@ describe('base task', () => {
         executable: () => 0,
         initialCapacity: 1,
         factoryCapacity: 3,
-        concurrencyLimit: -1
+        concurrencyLimit: -1,
       });
       task._population = 1;
       task._tick = () => {};
@@ -671,7 +675,7 @@ describe('base task', () => {
         name: 'foo',
         executable: () => 0,
         factoryCapacity: 3,
-        concurrencyLimit: -1
+        concurrencyLimit: -1,
       });
       task._generations = 2;
       task._population = 1;
@@ -703,7 +707,7 @@ describe('base task', () => {
       const task = new Base({
         name: 'foo',
         executable: () => 0,
-        concurrencyLimit: -1
+        concurrencyLimit: -1,
       });
       task._population = 1;
       task._tick = () => {};
@@ -715,7 +719,11 @@ describe('base task', () => {
     });
 
     it('should increment the count of generations when spawning', (done) => {
-      const task = new Base({ name: 'foo', executable: () => 0, concurrencyLimit: -1 });
+      const task = new Base({
+        name: 'foo',
+        executable: () => 0,
+        concurrencyLimit: -1,
+      });
       task._population = 1;
       task._tick = () => {};
       task.on('spawned', () => {
@@ -745,7 +753,7 @@ describe('base task', () => {
         name: 'foo',
         executable: () => 0,
         factoryCapacity: 5,
-        concurrencyLimit: -1
+        concurrencyLimit: -1,
       });
       task._population = 1;
       task._tick = spy(() => {});
