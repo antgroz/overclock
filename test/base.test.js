@@ -187,6 +187,38 @@ describe('base task', () => {
     });
   });
 
+  describe('_spawning', () => {
+    it('should emit a spawning event', (done) => {
+      const task = new Base({ name: 'foo', executable: () => 0 });
+      task.on('spawning', () => {
+        done();
+      });
+      task._spawning();
+    });
+  });
+
+  describe('_spawned', () => {
+    it('should emit a spawned event', (done) => {
+      const task = new Base({ name: 'foo', executable: () => 0 });
+      task.on('spawned', () => {
+        done();
+      });
+      task._spawned();
+    });
+
+    it('should accept error and result parameters', (done) => {
+      const task = new Base({ name: 'foo', executable: () => 0 });
+      const error = new Error('something');
+      const result = 5;
+      task.on('spawned', (data) => {
+        data.error.should.eq(error);
+        data.result.should.eq(result);
+        done();
+      });
+      task._spawned({ error, result });
+    });
+  });
+
   describe('_stopping', () => {
     it('should change the state of the task', () => {
       const task = new Base({ name: 'foo', executable: () => 0 });
@@ -201,6 +233,16 @@ describe('base task', () => {
         done();
       });
       task._stopping();
+    });
+
+    it('should accept an error parameter', (done) => {
+      const task = new Base({ name: 'foo', executable: () => 0 });
+      const error = new Error('something');
+      task.on('stopping', (data) => {
+        data.error.should.eq(error);
+        done();
+      });
+      task._stopping({ error });
     });
   });
 
@@ -285,8 +327,8 @@ describe('base task', () => {
       const task = new Base({ name: 'foo', executable: () => 5 });
       task.on('tick', (data) => {
         data.task.should.eq(task);
-        data.tickAt.should.be.instanceof(Date);
-        expect(data.tockAt).to.be.null;
+        data.details.tickAt.should.be.instanceof(Date);
+        expect(data.details.tockAt).to.be.null;
         expect(data.result).to.be.null;
         expect(data.error).to.be.null;
         done();
@@ -307,8 +349,11 @@ describe('base task', () => {
       const task = new Base({ name: 'foo', executable: () => 7 });
       task._tock = (data) => {
         data.task.should.eq(task);
-        data.tickAt.should.be.instanceof(Date);
-        data.tockAt.should.be.instanceof(Date);
+        data.details.tickAt.should.be.instanceof(Date);
+        data.details.tockAt.should.be.instanceof(Date);
+        data.details.duration.should.eq(
+          data.details.tockAt.getTime() - data.details.tickAt.getTime()
+        );
         data.result.should.eq(7);
         expect(data.error).to.be.null;
         done();
@@ -326,8 +371,8 @@ describe('base task', () => {
       });
       task._tock = (data) => {
         data.task.should.eq(task);
-        data.tickAt.should.be.instanceof(Date);
-        data.tockAt.should.be.instanceof(Date);
+        data.details.tickAt.should.be.instanceof(Date);
+        data.details.tockAt.should.be.instanceof(Date);
         expect(data.result).to.be.null;
         data.error.should.eq(error);
         done();
@@ -341,8 +386,8 @@ describe('base task', () => {
       task.on('tick', (d) => (data = d));
       task._tock = () => {
         data.task.should.eq(task);
-        data.tickAt.should.be.instanceof(Date);
-        data.tockAt.should.be.instanceof(Date);
+        data.details.tickAt.should.be.instanceof(Date);
+        data.details.tockAt.should.be.instanceof(Date);
         data.result.should.eq(5);
         expect(data.error).to.be.null;
         done();
@@ -373,28 +418,26 @@ describe('base task', () => {
   });
 
   describe('_spawn', () => {
-    it('should emit a spawning event', (done) => {
+    it('should call _spawning method', () => {
       const task = new Base({
         name: 'foo',
         executable: () => 0,
         generationLimit: 0,
       });
-      task.on('spawning', () => {
-        done();
-      });
+      task._spawning = spy();
       task._spawn();
+      task._spawning.calledOnce.should.be.true;
     });
 
-    it('should emit a spawned event', (done) => {
+    it('should call _spawned method', () => {
       const task = new Base({
         name: 'foo',
         executable: () => 0,
         generationLimit: 0,
       });
-      task.on('spawned', () => {
-        done();
-      });
+      task._spawned = spy();
       task._spawn();
+      task._spawned.calledOnce.should.be.true;
     });
 
     it('should emit error when generation limit is 0', (done) => {
@@ -580,6 +623,7 @@ describe('base task', () => {
         name: 'foo',
         executable: () => 0,
         livenessThreshold: 3,
+        concurrencyLimit: -1
       });
       task._population = 3;
       task.on('spawned', (data) => {
@@ -611,6 +655,7 @@ describe('base task', () => {
         executable: () => 0,
         initialCapacity: 1,
         factoryCapacity: 3,
+        concurrencyLimit: -1
       });
       task._population = 1;
       task._tick = () => {};
@@ -626,6 +671,7 @@ describe('base task', () => {
         name: 'foo',
         executable: () => 0,
         factoryCapacity: 3,
+        concurrencyLimit: -1
       });
       task._generations = 2;
       task._population = 1;
@@ -657,6 +703,7 @@ describe('base task', () => {
       const task = new Base({
         name: 'foo',
         executable: () => 0,
+        concurrencyLimit: -1
       });
       task._population = 1;
       task._tick = () => {};
@@ -668,7 +715,7 @@ describe('base task', () => {
     });
 
     it('should increment the count of generations when spawning', (done) => {
-      const task = new Base({ name: 'foo', executable: () => 0 });
+      const task = new Base({ name: 'foo', executable: () => 0, concurrencyLimit: -1 });
       task._population = 1;
       task._tick = () => {};
       task.on('spawned', () => {
@@ -698,6 +745,7 @@ describe('base task', () => {
         name: 'foo',
         executable: () => 0,
         factoryCapacity: 5,
+        concurrencyLimit: -1
       });
       task._population = 1;
       task._tick = spy(() => {});

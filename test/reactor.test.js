@@ -24,6 +24,16 @@ describe('reactor', () => {
       ctor.should.throw();
     });
 
+    it('should check that reactor branching limit is valid', () => {
+      const options = {
+        name: 'foo',
+        executable: () => 0,
+        reactorBranchingLimit: 2.3,
+      };
+      const ctor = () => new Reactor(options);
+      ctor.should.throw();
+    });
+
     it('should set up additional parameters', () => {
       const task = new Reactor({
         name: 'foo',
@@ -81,8 +91,36 @@ describe('reactor', () => {
       expect(task._timeout).to.be.null;
     });
 
+    it('should initiate stopping if reactor branching limit is zero', async () => {
+      const task = new Reactor({
+        name: 'foo',
+        executable: () => null,
+        reactorBranchingLimit: 0,
+      });
+      task._tryStop = spy(async () => {});
+      task._tock();
+      task._tryStop.calledOnce.should.be.true;
+      await clock.runAllAsync();
+    });
+
+    it('should spawn with error if reactor branching limit is reached', () => {
+      const task = new Reactor({
+        name: 'foo',
+        executable: () => null,
+        reactorBranchingLimit: 2,
+      });
+      task._timeouts = new Set([0, 1]);
+      task._spawned = spy();
+      task._tock();
+      task._spawned.calledOnce.should.be.true;
+    });
+
     it('should schedule the next spawning when possible', () => {
-      const task = new Reactor({ name: 'foo', executable: () => null });
+      const task = new Reactor({
+        name: 'foo',
+        executable: () => null,
+        reactorBranchingLimit: -1,
+      });
       task._spawn = () => {};
       task._isStopped = false;
       task._isStarted = true;

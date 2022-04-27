@@ -116,10 +116,12 @@ declare class Heartbeat<R = any> extends Base<R> {
 
 export type ReactorTaskOptions<R = any> = BaseTaskOptions<R> & {
   reactorTimeoutMillis?: number;
+  reactorBranchingLimit?: number;
 };
 
 declare class Reactor<R = any> extends Base<R> {
   readonly reactorTimeoutMillis: number;
+  readonly reactorBranchingLimit: number;
 
   constructor(options: ReactorTaskOptions<R>);
 }

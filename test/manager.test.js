@@ -1,6 +1,6 @@
 const { describe, it } = require('mocha');
 const { expect, should, use } = require('chai');
-const { EVENTS } = require('../lib/constants');
+const { EVENT_NAMES } = require('../lib/constants');
 const Manager = require('../lib/manager');
 const { spy } = require('sinon');
 const Heartbeat = require('../lib/heartbeat');
@@ -19,7 +19,7 @@ describe('manager', () => {
 
     it('should initialize task listeners', () => {
       const manager = new Manager();
-      for (const event of EVENTS.keys()) {
+      for (const event of EVENT_NAMES.keys()) {
         manager._listeners.has(event).should.be.true;
       }
     });
@@ -79,6 +79,16 @@ describe('manager', () => {
   });
 
   describe('get', () => {
+    it('should throw if task name is not provided', () => {
+      const man = new Manager();
+      man.get.bind(man).should.throw();
+    });
+
+    it('should throw if task name is invalid', () => {
+      const man = new Manager();
+      man.get.bind(man, 5).should.throw();
+    });
+
     it('should return the task if is added', () => {
       const man = new Manager();
       man.subscribe = () => {};
@@ -94,6 +104,16 @@ describe('manager', () => {
   });
 
   describe('has', () => {
+    it('should throw if task name is not provided', () => {
+      const man = new Manager();
+      man.has.bind(man).should.throw();
+    });
+
+    it('should throw if task name is invalid', () => {
+      const man = new Manager();
+      man.has.bind(man, 5).should.throw();
+    });
+
     it('should return true if is added', () => {
       const man = new Manager();
       man.subscribe = () => {};
@@ -109,6 +129,16 @@ describe('manager', () => {
   });
 
   describe('delete', () => {
+    it('should throw if task name is not provided', () => {
+      const man = new Manager();
+      man.delete.bind(man).should.throw();
+    });
+
+    it('should throw if task name is invalid', () => {
+      const man = new Manager();
+      man.delete.bind(man, 5).should.throw();
+    });
+
     it('should return false if task is not added', () => {
       const man = new Manager();
       man.delete('foo').should.be.false;
@@ -134,6 +164,16 @@ describe('manager', () => {
   });
 
   describe('subscribe', () => {
+    it('should throw if task name is not provided', () => {
+      const man = new Manager();
+      man.subscribe.bind(man).should.throw();
+    });
+
+    it('should throw if task name is invalid', () => {
+      const man = new Manager();
+      man.subscribe.bind(man, 5).should.throw();
+    });
+
     it('should throw if task is not added', () => {
       const man = new Manager();
       man.subscribe.bind(man, 'foo').should.throw();
@@ -161,7 +201,7 @@ describe('manager', () => {
       man.add({ name: 'foo', executable: () => 5 });
       delete man.subscribe;
       man.subscribe('foo');
-      for (const event of EVENTS) {
+      for (const event of EVENT_NAMES) {
         const listeners = man._tasks.get('foo').listeners(event);
         listeners.length.should.eq(1);
       }
@@ -174,7 +214,7 @@ describe('manager', () => {
       delete man.subscribe;
       man.subscribe('foo');
       man.subscribe('foo');
-      for (const event of EVENTS) {
+      for (const event of EVENT_NAMES) {
         const listeners = man._tasks.get('foo').listeners(event);
         listeners.length.should.eq(1);
       }
@@ -182,6 +222,16 @@ describe('manager', () => {
   });
 
   describe('unsubscribe', () => {
+    it('should throw if task name is not provided', () => {
+      const man = new Manager();
+      man.unsubscribe.bind(man).should.throw();
+    });
+
+    it('should throw if task name is invalid', () => {
+      const man = new Manager();
+      man.unsubscribe.bind(man, 5).should.throw();
+    });
+
     it('should throw if task is not added', () => {
       const man = new Manager();
       man.unsubscribe.bind(man, 'foo').should.throw();
@@ -205,7 +255,7 @@ describe('manager', () => {
       const man = new Manager();
       man.add({ name: 'foo', executable: () => 5 });
       man.unsubscribe('foo');
-      for (const event of EVENTS) {
+      for (const event of EVENT_NAMES) {
         const listeners = man._tasks.get('foo').listeners(event);
         listeners.length.should.eq(0);
       }
@@ -232,6 +282,11 @@ describe('manager', () => {
   });
 
   describe('start', () => {
+    it('should throw if task name is invalid', () => {
+      const man = new Manager();
+      man.start.bind(man, 5).should.throw();
+    });
+
     it('should throw if task is not added', () => {
       const man = new Manager();
       man.start.bind(man, 'foo').should.throw();
@@ -262,6 +317,11 @@ describe('manager', () => {
   });
 
   describe('stop', () => {
+    it('should throw if task name is invalid', async () => {
+      const man = new Manager();
+      await man.stop(5).should.eventually.be.rejectedWith;
+    });
+
     it('should throw if task is not added', async () => {
       const man = new Manager();
       await man.stop('foo').should.eventually.be.rejectedWith;
