@@ -53,6 +53,7 @@ export type BaseTaskOptions<R = any> = {
   executable: TaskExecutable<R>;
   concurrencyLimit?: number;
   livenessThreshold?: number;
+  initialCapacity?: number;
   factoryCapacity?: number;
   generationLimit?: number;
   startTimeoutMillis?: number;
@@ -66,6 +67,7 @@ declare class Base<R = any> extends EventEmitter {
   readonly executable: TaskExecutable<R>;
   readonly concurrencyLimit: number;
   readonly livenessThreshold: number;
+  readonly initialCapacity: number;
   readonly factoryCapacity: number;
   readonly generationLimit: number;
   readonly startTimeoutMillis: number;
