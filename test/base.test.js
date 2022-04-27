@@ -3,7 +3,6 @@ const { expect, should, use } = require('chai');
 const Base = require('../lib/base');
 const { spy, useFakeTimers } = require('sinon');
 const chaiAsPromised = require('chai-as-promised');
-const { kTock } = require('../lib/symbols');
 const {
   DEFAULT_LIVENESS_THRESHOLD,
   DEFAULT_RUN_TIMEOUT,
@@ -464,7 +463,7 @@ describe('base task', () => {
         generationLimit: 0,
       });
       task._stopping = spy();
-      task._tryStop = spy();
+      task._tryStop = spy(async () => {});
       task._spawn();
       task._stopping.calledOnce.should.be.true;
       task._tryStop.calledOnce.should.be.true;
@@ -490,7 +489,7 @@ describe('base task', () => {
         concurrencyLimit: 0,
       });
       task._stopping = spy();
-      task._tryStop = spy();
+      task._tryStop = spy(async () => {});
       task._spawn();
       task._stopping.calledOnce.should.be.true;
       task._tryStop.calledOnce.should.be.true;
@@ -516,7 +515,7 @@ describe('base task', () => {
         livenessThreshold: 0,
       });
       task._stopping = spy();
-      task._tryStop = spy();
+      task._tryStop = spy(async () => {});
       task._spawn();
       task._stopping.calledOnce.should.be.true;
       task._tryStop.calledOnce.should.be.true;
@@ -544,7 +543,7 @@ describe('base task', () => {
         factoryCapacity: 0,
       });
       task._stopping = spy();
-      task._tryStop = spy();
+      task._tryStop = spy(async () => {});
       task._spawn();
       task._stopping.calledOnce.should.be.true;
       task._tryStop.calledOnce.should.be.true;
@@ -574,7 +573,7 @@ describe('base task', () => {
       });
       task._generations = 2;
       task._stopping = spy();
-      task._tryStop = spy();
+      task._tryStop = spy(async () => {});
       task._spawn();
       task._stopping.calledOnce.should.be.true;
       task._tryStop.calledOnce.should.be.true;
@@ -602,7 +601,7 @@ describe('base task', () => {
       });
       task._generations = 5;
       task._stopping = spy();
-      task._tryStop = spy();
+      task._tryStop = spy(async () => {});
       task._spawn();
       task._stopping.calledOnce.should.be.true;
       task._tryStop.calledOnce.should.be.true;
@@ -819,10 +818,10 @@ describe('base task', () => {
       const task = new Base({ name: 'foo', executable: () => 0 });
       let calls = 0;
       task._population = 3;
-      task.prependListener(kTock, () => calls++);
+      task.prependListener('tock', () => calls++);
       task._tryStop().then(() => {
         calls.should.eq(3);
-        task.listenerCount(kTock).should.eq(0);
+        task.listenerCount('tock').should.eq(1);
         done();
       });
       while (task.population) {
