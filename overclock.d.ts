@@ -14,37 +14,12 @@ export type TaskEvent =
 
 export type TaskExecutable<R = any> = () => R | Promise<R>;
 
-export type TaskDataTick<R = any> = {
-  task: Task<R>;
-  tickAt: Date;
-  tockAt: null;
-  error: null;
-  result: null;
-};
-
-export type TaskDataTock<R = any> = {
-  task: Task<R>;
-  tickAt: Date;
-  tockAt: Date;
-  error: Error | null;
-  result: null | R;
-};
-
-export type TaskDataSpawned<R = any> = {
+export type TaskData<R> = {
   task: Task<R>;
   error: Error | null;
-  result: null | number;
+  result: null | R | number;
+  details: any;
 };
-
-export type TaskDataOther<R = any> = {
-  task: Task<R>;
-};
-
-export type TaskData<R> =
-  | TaskDataTick<R>
-  | TaskDataTock<R>
-  | TaskDataSpawned<R>
-  | TaskDataOther<R>;
 
 export type TaskListener<R = any> = (data: TaskData<R>) => void;
 
