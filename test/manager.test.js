@@ -1,3 +1,5 @@
+'use strict';
+
 const { describe, it } = require('mocha');
 const { expect, should, use } = require('chai');
 const { EVENT_NAMES } = require('../lib/constants');

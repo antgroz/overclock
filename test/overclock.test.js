@@ -1,3 +1,5 @@
+'use strict';
+
 const { describe, it } = require('mocha');
 const { should } = require('chai');
 const overclock = require('../overclock');

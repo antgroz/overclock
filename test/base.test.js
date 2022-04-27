@@ -1,3 +1,5 @@
+'use strict';
+
 const { before, after, describe, it } = require('mocha');
 const { expect, should, use } = require('chai');
 const Base = require('../lib/base');

@@ -1,3 +1,5 @@
+'use strict';
+
 const { describe, it } = require('mocha');
 const errors = require('../lib/errors');
 const { should } = require('chai');
