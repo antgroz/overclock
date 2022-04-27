@@ -59,7 +59,7 @@ export type BaseTaskOptions<R = any> = {
   startTimeoutMillis?: number;
   runTimeoutMillis?: number;
   stopTimeoutMillis?: number;
-  gracefulTimeoutMillis?: number;
+  graceTimeoutMillis?: number;
 };
 
 declare class Base<R = any> extends EventEmitter {
@@ -73,7 +73,7 @@ declare class Base<R = any> extends EventEmitter {
   readonly startTimeoutMillis: number;
   readonly runTimeoutMillis: number;
   readonly stopTimeoutMillis: string;
-  readonly gracefulTimeoutMillis: string;
+  readonly graceTimeoutMillis: string;
   readonly isStarting: boolean;
   readonly isStarted: boolean;
   readonly isStopping: boolean;
@@ -124,7 +124,7 @@ declare class Reactor<R = any> extends Base<R> {
   constructor(options: ReactorTaskOptions<R>);
 }
 
-export type TaskOptions<R = any> = { type: TaskType } & (
+export type TaskOptions<R = any> = { type?: TaskType } & (
   | HeartbeatTaskOptions<R>
   | ReactorTaskOptions<R>
 );

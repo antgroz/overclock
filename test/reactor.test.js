@@ -21,9 +21,7 @@ describe('reactor', () => {
         reactorTimeoutMillis: -2,
       };
       const ctor = () => new Reactor(options);
-      const message =
-        'Task reactor timeout must be a finite non-negative number';
-      ctor.should.throw(message);
+      ctor.should.throw();
     });
 
     it('should set up additional parameters', () => {
@@ -89,8 +87,27 @@ describe('reactor', () => {
       task._isStopped = false;
       task._isStarted = true;
       task._tock({});
-      task._timeout.should.not.be.null;
+      task._timeouts.size.should.be.gt(0);
       clock.runAll();
+    });
+  });
+
+  describe('_tryStop', () => {
+    it('clears all timeouts', async () => {
+      const task = new Reactor({ name: 'foo', executable: () => null });
+      task._timeouts.add(setTimeout(() => 5, 10000));
+      task._tryStop();
+      task._timeouts.size.should.eq(0);
+      await clock.runAllAsync();
+    });
+
+    it('should call the parent _tryStop method', async () => {
+      const s = spy(Base.prototype, '_tryStop');
+      const task = new Reactor({ name: 'foo', executable: () => null });
+      task._timeouts.add(setTimeout(() => 5, 10000));
+      task._tryStop();
+      s.calledOnce.should.be.true;
+      await clock.runAllAsync();
     });
   });
 });

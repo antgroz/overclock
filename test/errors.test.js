@@ -5,21 +5,20 @@ const { should } = require('chai');
 should();
 
 describe('errors', () => {
-  for (const name in errors) {
-    const E = errors[name];
+  for (const code in errors) {
+    const E = errors[code];
 
-    describe(name, () => {
+    describe(code, () => {
       it('should have a correct name', () => {
-        new E().name.should.eq(name);
+        new E().name.should.eq('OverclockError');
+      });
+
+      it('should have a correct code', () => {
+        new E().code.should.eq(code);
       });
 
       it('should have a stack trace', () => {
         new E().stack.should.not.be.undefined;
-      });
-
-      it('should accept a message', () => {
-        const message = 'foo';
-        new E(message).message.should.eq(message);
       });
     });
   }

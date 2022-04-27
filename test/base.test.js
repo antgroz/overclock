@@ -32,7 +32,7 @@ describe('base task', () => {
         startTimeoutMillis: 0,
         runTimeoutMillis: null,
         stopTimeoutMillis: null,
-        gracefulTimeoutMillis: 5,
+        graceTimeoutMillis: 5,
       };
 
       const task = new Base(options);
@@ -46,19 +46,27 @@ describe('base task', () => {
       task.startTimeoutMillis.should.eq(options.startTimeoutMillis);
       task.runTimeoutMillis.should.eq(DEFAULT_RUN_TIMEOUT);
       task.stopTimeoutMillis.should.eq(DEFAULT_STOP_TIMEOUT);
-      task.gracefulTimeoutMillis.should.eq(options.gracefulTimeoutMillis);
+      task.graceTimeoutMillis.should.eq(options.graceTimeoutMillis);
     });
 
     it('should check that name is provided', () => {
       const ctor = () => new Base({ executable: () => 5 });
-      const message = 'Task name must be a non-empty string';
-      ctor.should.throw(message);
+      ctor.should.throw();
+    });
+
+    it('should check that name is valid', () => {
+      const ctor = () => new Base({ name: 7, executable: () => 5 });
+      ctor.should.throw();
     });
 
     it('should check that executable is provided', () => {
       const ctor = () => new Base({ name: 'foo' });
-      const message = 'Task executable must be a function';
-      ctor.should.throw(message);
+      ctor.should.throw();
+    });
+
+    it('should check that executable is valid', () => {
+      const ctor = () => new Base({ name: 'foo', executable: null });
+      ctor.should.throw();
     });
 
     it('should check that concurrency limit is valid', () => {
@@ -68,8 +76,7 @@ describe('base task', () => {
           executable: () => null,
           concurrencyLimit: 1.5,
         });
-      const message = 'Task concurrency limit must be an integer';
-      ctor.should.throw(message);
+      ctor.should.throw();
     });
 
     it('should check that liveness threshold is valid', () => {
@@ -79,22 +86,25 @@ describe('base task', () => {
           executable: () => null,
           livenessThreshold: 1.5,
         });
-      const message = 'Task liveness threshold must be an integer';
-      ctor.should.throw(message);
+      ctor.should.throw();
+    });
+
+    it('should check that factory capacity is valid', () => {
+      const ctor = () =>
+        new Base({ name: 'foo', executable: () => null, initialCapacity: '' });
+      ctor.should.throw();
     });
 
     it('should check that factory capacity is valid', () => {
       const ctor = () =>
         new Base({ name: 'foo', executable: () => null, factoryCapacity: '' });
-      const message = 'Task factory capacity must be an integer';
-      ctor.should.throw(message);
+      ctor.should.throw();
     });
 
     it('should check that generation limit is valid', () => {
       const options = { name: 'a', executable: () => 0, generationLimit: -0.1 };
       const ctor = () => new Base(options);
-      const message = 'Task generation limit must be an integer';
-      ctor.should.throw(message);
+      ctor.should.throw();
     });
 
     it('should check that start timeout is valid', () => {
@@ -104,8 +114,7 @@ describe('base task', () => {
         startTimeoutMillis: '',
       };
       const ctor = () => new Base(options);
-      const message = 'Task start timeout must be a finite non-negative number';
-      ctor.should.throw(message);
+      ctor.should.throw();
     });
 
     it('should check that run timeout is valid', () => {
@@ -115,8 +124,7 @@ describe('base task', () => {
         runTimeoutMillis: Number.POSITIVE_INFINITY,
       };
       const ctor = () => new Base(options);
-      const message = 'Task run timeout must be a finite number';
-      ctor.should.throw(message);
+      ctor.should.throw();
     });
 
     it('should check that stop timeout is valid', () => {
@@ -126,19 +134,17 @@ describe('base task', () => {
         stopTimeoutMillis: -5,
       };
       const ctor = () => new Base(options);
-      const message = 'Task stop timeout must be a finite non-negative number';
-      ctor.should.throw(message);
+      ctor.should.throw();
     });
 
-    it('should check that graceful timeout is valid', () => {
+    it('should check that grace timeout is valid', () => {
       const options = {
         name: 'a',
         executable: () => 0,
-        gracefulTimeoutMillis: '2',
+        graceTimeoutMillis: '2',
       };
       const ctor = () => new Base(options);
-      const message = 'Task graceful timeout must be a finite number';
-      ctor.should.throw(message);
+      ctor.should.throw();
     });
   });
 
@@ -242,8 +248,7 @@ describe('base task', () => {
         executable: () => new Promise((resolve) => setTimeout(resolve, 5)),
         runTimeoutMillis: 0,
       });
-      const error = 'Run timeout of 0 ms reached';
-      const promise = task._run().should.eventually.be.rejectedWith(error);
+      const promise = task._run().should.eventually.be.rejectedWith;
       clock.runAll();
       return promise;
     });
@@ -399,8 +404,7 @@ describe('base task', () => {
         generationLimit: 0,
       });
       task.on('spawned', (data) => {
-        const { message } = data.error;
-        message.should.eq('Spawning is inhibited by generation limit of 0');
+        data.error.should.not.be.null;
         done();
       });
       task._spawn();
@@ -426,14 +430,13 @@ describe('base task', () => {
         concurrencyLimit: 0,
       });
       task.on('spawned', (data) => {
-        const { message } = data.error;
-        message.should.eq('Spawning is inhibited by concurrency limit of 0');
+        data.error.should.not.be.null;
         done();
       });
       task._spawn();
     });
 
-    it('should initiate stopping when concurrency limit limit is 0', () => {
+    it('should initiate stopping when concurrency limit is 0', () => {
       const task = new Base({
         name: 'foo',
         executable: () => 0,
@@ -453,8 +456,7 @@ describe('base task', () => {
         livenessThreshold: 0,
       });
       task.on('spawned', (data) => {
-        const { message } = data.error;
-        message.should.eq('Spawning is inhibited by liveness threshold of 0');
+        data.error.should.not.be.null;
         done();
       });
       task._spawn();
@@ -473,26 +475,57 @@ describe('base task', () => {
       task._tryStop.calledOnce.should.be.true;
     });
 
-    it('should emit error when factory capacity is 0', (done) => {
+    it('should emit error when initial capacity and factory capacity are 0', (done) => {
       const task = new Base({
         name: 'foo',
         executable: () => 0,
+        initialCapacity: 0,
         factoryCapacity: 0,
       });
       task.on('spawned', (data) => {
-        const { message } = data.error;
-        message.should.eq('Spawning is inhibited by factory capacity of 0');
+        data.error.should.not.be.null;
         done();
       });
       task._spawn();
     });
 
-    it('should initiate stopping when factory capacity is 0', () => {
+    it('should initiate stopping when initial capacity and factory capacity are 0', () => {
       const task = new Base({
         name: 'foo',
         executable: () => 0,
+        initialCapacity: 0,
         factoryCapacity: 0,
       });
+      task._stopping = spy();
+      task._tryStop = spy();
+      task._spawn();
+      task._stopping.calledOnce.should.be.true;
+      task._tryStop.calledOnce.should.be.true;
+    });
+
+    it('should emit error when generations passed and factory capacity are 0', (done) => {
+      const task = new Base({
+        name: 'foo',
+        executable: () => 0,
+        initialCapacity: 1,
+        factoryCapacity: 0,
+      });
+      task._generations = 2;
+      task.on('spawned', (data) => {
+        data.error.should.not.be.null;
+        done();
+      });
+      task._spawn();
+    });
+
+    it('should initiate stopping when generations passed and factory capacity are 0', () => {
+      const task = new Base({
+        name: 'foo',
+        executable: () => 0,
+        initialCapacity: 1,
+        factoryCapacity: 0,
+      });
+      task._generations = 2;
       task._stopping = spy();
       task._tryStop = spy();
       task._spawn();
@@ -508,8 +541,7 @@ describe('base task', () => {
       });
       task._generations = 5;
       task.on('spawned', (data) => {
-        const { message } = data.error;
-        message.should.eq('Not spawning because generation limit is reached');
+        data.error.should.not.be.null;
         done();
       });
       task._spawn();
@@ -537,8 +569,7 @@ describe('base task', () => {
       });
       task._population = 3;
       task.on('spawned', (data) => {
-        const { message } = data.error;
-        message.should.eq('Not spawning because concurrency limit is reached');
+        data.error.should.not.be.null;
         done();
       });
       task._spawn();
@@ -552,8 +583,7 @@ describe('base task', () => {
       });
       task._population = 3;
       task.on('spawned', (data) => {
-        const { message: m } = data.error;
-        m.should.eq('Not spawning because liveness threshold is satisfied');
+        data.error.should.not.be.null;
         done();
       });
       task._spawn();
@@ -565,6 +595,7 @@ describe('base task', () => {
         executable: () => 0,
         concurrencyLimit: 3,
       });
+      task._generations = 1;
       task._population = 1;
       task._tick = () => {};
       task.on('spawned', (data) => {
@@ -574,12 +605,29 @@ describe('base task', () => {
       task._spawn();
     });
 
-    it('should spawn up to factory capacity', (done) => {
+    it('should spawn up to initial capacity on first generation', (done) => {
+      const task = new Base({
+        name: 'foo',
+        executable: () => 0,
+        initialCapacity: 1,
+        factoryCapacity: 3,
+      });
+      task._population = 1;
+      task._tick = () => {};
+      task.on('spawned', (data) => {
+        data.result.should.eq(1);
+        done();
+      });
+      task._spawn();
+    });
+
+    it('should spawn up to factory capacity on next generation', (done) => {
       const task = new Base({
         name: 'foo',
         executable: () => 0,
         factoryCapacity: 3,
       });
+      task._generations = 2;
       task._population = 1;
       task._tick = () => {};
       task.on('spawned', (data) => {
@@ -606,7 +654,10 @@ describe('base task', () => {
     });
 
     it('should spawn one when there are no limits', (done) => {
-      const task = new Base({ name: 'foo', executable: () => 0 });
+      const task = new Base({
+        name: 'foo',
+        executable: () => 0,
+      });
       task._population = 1;
       task._tick = () => {};
       task.on('spawned', (data) => {
@@ -723,26 +774,23 @@ describe('base task', () => {
       }
     });
 
-    it('should throw if graceful timeout is fired', async () => {
+    it('should throw if grace timeout is fired', async () => {
       const task = new Base({
         name: 'foo',
         executable: () => 0,
-        gracefulTimeoutMillis: 100,
+        graceTimeoutMillis: 100,
       });
       task._population = 3;
-      const message = 'Graceful timeout of 100 ms reached';
-      const promise = task
-        ._tryStop()
-        .should.eventually.be.rejectedWith(message);
+      const promise = task._tryStop().should.eventually.be.rejectedWith;
       await clock.runAllAsync();
       return promise;
     });
 
-    it('should not prevent stopping if graceful timeout fires', async () => {
+    it('should not prevent stopping if grace timeout fires', async () => {
       const task = new Base({
         name: 'foo',
         executable: () => 0,
-        gracefulTimeoutMillis: 100,
+        graceTimeoutMillis: 100,
       });
       task._population = 3;
       let error = null;
